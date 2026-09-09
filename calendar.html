@@ -800,13 +800,19 @@ function applySeed(){
   if(stored===ver)return;
 
   // 版本變了：合併。你打的勾照舊，你自己加的項目照舊，計畫項目換成新的。
-  var doneIds={},mine={},dk,i;
+  // 「自己加的」＝ 沒有 p 記號，而且 id 不在計畫裡。
+  // （光看 p 記號不夠：更早的版本沒蓋這個記號，會把整份計畫誤判成自己加的而重複一份。）
+  var seedIds={},dk,i,j;
+  for(dk in SEED.days)if(SEED.days.hasOwnProperty(dk))
+    for(j=0;j<SEED.days[dk].length;j++)seedIds[SEED.days[dk][j].id]=1;
+
+  var doneIds={},mine={};
   for(dk in state.days)if(state.days.hasOwnProperty(dk)){
     var own=[];
     for(i=0;i<state.days[dk].length;i++){
       var it=state.days[dk][i];
       if(it.done)doneIds[it.id]=1;
-      if(!it.p)own.push(it);          // 沒有 p 記號 = 你自己加的
+      if(!it.p&&!seedIds[it.id])own.push(it);
     }
     if(own.length)mine[dk]=own;
   }
