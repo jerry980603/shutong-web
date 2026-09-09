@@ -1,0 +1,13 @@
+{
+  "name": "書僮 — 備考執行器",
+  "short_name": "書僮",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f2fd",
+  "theme_color": "#7c5cbf",
+  "lang": "zh-TW",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

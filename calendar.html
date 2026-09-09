@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>html{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>學測倒數行事曆</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<style>
+:root{
+  --paper:#EFF2F5;
+  --surface:#FFFFFF;
+  --surface-2:#F7F9FB;
+  --ink:#131C26;
+  --ink-2:#4E5C6B;
+  --ink-3:#8A98A6;
+  --line:#DBE2E9;
+  --line-2:#C6D0DA;
+  --accent:#B3122E;
+  --accent-ink:#B3122E;
+  --accent-wash:#FBEAEC;
+  --weekend:#E9EDF2;
+  --tickmark:#FFFFFF;
+  --on-ev:#FFFFFF;
+  --shadow:0 1px 2px rgba(19,28,38,.06),0 8px 24px rgba(19,28,38,.08);
+  --ch:#9A5B12; --en:#1A6595; --ma:#5B3FA8; --sc:#166B56; --po:#8E2F63; --ot:#5B6875;
+  --mid:#C2570B;  --mid-w:#FBEDE0;
+  --mock:#3B4FA8; --mock-w:#E9ECFA;
+  --lis:#0B6E85;  --lis-w:#E0F0F4;
+  --gsat:#B3122E; --gsat-w:#FBE3E7;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E141A;
+    --surface:#161F28;
+    --surface-2:#1B2531;
+    --ink:#E5ECF3;
+    --ink-2:#9FAEBC;
+    --ink-3:#6E7E8D;
+    --line:#26323E;
+    --line-2:#35434F;
+    --accent:#FF5C71;
+    --accent-ink:#FF7C8C;
+    --accent-wash:#301820;
+    --weekend:#1A242E;
+    --tickmark:#0E141A;
+    --on-ev:#0E141A;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);
+    --ch:#E0A05A; --en:#68B4E2; --ma:#A98CF0; --sc:#54C3A2; --po:#EB86B4; --ot:#93A3B2;
+    --mid:#F2A057;  --mid-w:#33220F;
+    --mock:#8FA0F5; --mock-w:#1B2044;
+    --lis:#4FC0D9;  --lis-w:#0F2B33;
+    --gsat:#FF5C71; --gsat-w:#361A21;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E141A;
+  --surface:#161F28;
+  --surface-2:#1B2531;
+  --ink:#E5ECF3;
+  --ink-2:#9FAEBC;
+  --ink-3:#6E7E8D;
+  --line:#26323E;
+  --line-2:#35434F;
+  --accent:#FF5C71;
+  --accent-ink:#FF7C8C;
+  --accent-wash:#301820;
+  --weekend:#1A242E;
+  --tickmark:#0E141A;
+  --on-ev:#0E141A;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);
+  --ch:#E0A05A; --en:#68B4E2; --ma:#A98CF0; --sc:#54C3A2; --po:#EB86B4; --ot:#93A3B2;
+  --mid:#F2A057;  --mid-w:#33220F;
+  --mock:#8FA0F5; --mock-w:#1B2044;
+  --lis:#4FC0D9;  --lis-w:#0F2B33;
+  --gsat:#FF5C71; --gsat-w:#361A21;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Noto Sans TC","Segoe UI",system-ui,sans-serif;
+  font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;font-family:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+/* event kinds */
+.k-mid{--ev:var(--mid);--ev-w:var(--mid-w)}
+.k-mock{--ev:var(--mock);--ev-w:var(--mock-w)}
+.k-lis{--ev:var(--lis);--ev-w:var(--lis-w)}
+.k-gsat{--ev:var(--gsat);--ev-w:var(--gsat-w)}
+
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
+.hwrap{max-width:1080px;margin:0 auto;padding:11px 16px 0}
+.htop{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.brand{flex:1 1 200px;min-width:0}
+h1{font-family:"Noto Serif TC",serif;font-weight:700;font-size:19px;margin:0;letter-spacing:.01em;text-wrap:balance}
+.sub1{margin-top:1px;color:var(--ink-2);font-size:12.5px}
+.sub1 b{color:var(--accent-ink)}
+.count{text-align:right;line-height:1}
+.count .big{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:38px;color:var(--accent-ink);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.count .lab{display:block;font-size:10.5px;color:var(--ink-3);letter-spacing:.14em;margin-top:2px}
+
+.bar{margin:10px 0 8px;height:5px;background:var(--weekend);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.meta{display:flex;gap:13px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-3);margin-bottom:8px}
+.meta b{color:var(--ink-2);font-weight:600}
+
+.exams{display:flex;gap:5px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin}
+.exch{
+  flex:none;display:inline-flex;align-items:center;gap:6px;padding:3px 5px 3px 3px;
+  border:1px solid var(--ev);border-radius:7px;background:var(--ev-w);white-space:nowrap;
+}
+.exch .nm{background:var(--ev);color:var(--on-ev);font-size:11.5px;font-weight:700;padding:1px 6px;border-radius:4px}
+.exch .dt{font-size:10.5px;color:var(--ink-2);font-family:"IBM Plex Mono",monospace}
+.exch .dd{font-size:10.5px;color:var(--ev);font-weight:700;font-family:"IBM Plex Mono",monospace}
+.exch.past{opacity:.4}
+
+.hbot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-bottom:10px}
+.chips{display:flex;gap:5px;flex-wrap:wrap;flex:1 1 auto}
+.chip{display:inline-flex;align-items:baseline;gap:4px;padding:3px 8px;border-radius:99px;
+  border:1px solid var(--line);font-size:12px;line-height:1.4;background:var(--surface-2)}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:var(--c);align-self:center;flex:none}
+.chip .pct{font-size:10.5px;color:var(--ink-3);font-family:"IBM Plex Mono",monospace}
+.chip[aria-pressed="true"]{background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--c)}
+.chip.dim{opacity:.42}
+.views{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex:none}
+.views button{padding:4px 11px;font-size:12px;color:var(--ink-2)}
+.views button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+
+/* ---------- body ---------- */
+main{max-width:1080px;margin:0 auto;padding:18px 16px 96px}
+.month{margin-bottom:26px}
+.mhead{display:flex;align-items:baseline;gap:10px;margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line-2)}
+.mhead h2{font-family:"Noto Serif TC",serif;font-size:16px;font-weight:600;margin:0}
+.mhead .sub{font-size:11.5px;color:var(--ink-3)}
+
+.wnum{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;color:var(--ink-3)}
+.wtype{font-size:10.5px;padding:1px 6px;border-radius:4px;border:1px solid var(--line);
+  color:var(--ink-2);background:var(--surface-2);white-space:nowrap}
+.wtype.t-review{border-color:var(--mid);border-style:dashed;color:var(--mid);background:transparent}
+.wtype.t-midterm{border-color:var(--mid);color:var(--mid);background:var(--mid-w)}
+.wtype.t-exam{border-color:var(--gsat);color:var(--gsat);background:var(--gsat-w)}
+.wtype.t-off{border-color:var(--line-2);color:var(--ink-3);font-style:italic}
+.wev{font-size:10.5px;padding:1px 6px;border-radius:4px;background:var(--ev);color:var(--on-ev);font-weight:700;white-space:nowrap}
+
+/* list view */
+.wgroup{margin-bottom:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.wbar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface-2);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.w-review .wbar,.w-midterm .wbar{background:var(--mid-w)}
+.w-exam .wbar{background:var(--gsat-w)}
+.w-review .wbar{border-bottom-style:dashed;border-bottom-color:var(--mid)}
+.grail.w-review,.grail.w-midterm{background:var(--mid-w)}
+.grail.w-exam{background:var(--gsat-w)}
+.wbar .span{margin-left:auto;font-size:11px;color:var(--ink-3);font-family:"IBM Plex Mono",monospace}
+.day{display:flex;gap:10px;padding:7px 10px;border-top:1px solid var(--line)}
+.wgroup .day:first-of-type{border-top:none}
+.day.we{background:var(--weekend)}
+.day.ex{background:var(--ev-w);box-shadow:inset 4px 0 0 var(--ev)}
+.day.tod .rail .dd{color:var(--accent-ink)}
+.day.prog{outline:2px dashed var(--mid);outline-offset:-3px;border-radius:7px}
+.cell.prog{outline:2px dashed var(--mid);outline-offset:-2px}
+.progtag{display:inline-block;font-size:9.5px;font-weight:700;color:var(--mid);
+  border:1px dashed var(--mid);border-radius:3px;padding:0 3px;line-height:1.6;
+  margin-top:2px;white-space:nowrap;letter-spacing:.02em}
+.rail{flex:none;width:66px;display:flex;flex-direction:column;line-height:1.25;padding-top:1px}
+.rail .dd{font-family:"IBM Plex Mono",monospace;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.rail .wd{font-size:11px;color:var(--ink-3)}
+.rail .dc{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--ink-3);margin-top:1px}
+.day.ex .rail .dc{color:var(--ev);font-weight:600}
+.now{display:inline-block;font-size:9.5px;font-weight:700;color:var(--surface);background:var(--accent);
+  border-radius:3px;padding:0 4px;margin-left:3px;vertical-align:2px;letter-spacing:.03em}
+.dbody{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px;align-items:flex-start}
+.evrow{display:inline-flex;align-items:center;gap:6px;margin-bottom:1px}
+.evrow .nm{background:var(--ev);color:var(--on-ev);font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:5px}
+.evrow .note{font-size:11px;color:var(--ev)}
+.it{display:flex;gap:7px;align-items:baseline;width:100%;text-align:left;padding:1px 0}
+.it .tick{flex:none;width:14px;height:14px;border:1.5px solid var(--c);border-radius:4px;align-self:center;position:relative;background:transparent}
+.it.done .tick{background:var(--c)}
+.it.done .tick::after{content:"";position:absolute;left:3.5px;top:.5px;width:3.5px;height:8px;
+  border:solid var(--tickmark);border-width:0 2px 2px 0;transform:rotate(42deg)}
+.it .tag{flex:none;font-size:10.5px;color:var(--c);font-weight:700;min-width:2.4em}
+.it .tx{flex:1 1 auto;word-break:break-word;font-size:13px}
+.it.done .tx{color:var(--ink-3);text-decoration:line-through;text-decoration-thickness:1px}
+.it.hide{display:none}
+.addbtn{font-size:11.5px;color:var(--ink-3);padding:2px 8px;border:1px dashed var(--line-2);border-radius:6px;margin-top:2px}
+.addbtn:hover{color:var(--accent-ink);border-color:var(--accent)}
+
+/* grid view */
+.grid{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.grow{display:grid;grid-template-columns:74px repeat(7,1fr);border-top:1px solid var(--line)}
+.grid .grow:first-child{border-top:none}
+.ghead{background:var(--surface-2);font-size:11px;color:var(--ink-3)}
+.ghead>div{padding:5px 6px;text-align:center;border-left:1px solid var(--line)}
+.ghead>div:first-child{border-left:none;text-align:left}
+.grail{padding:6px;display:flex;flex-direction:column;gap:3px;align-items:flex-start;background:var(--surface-2);font-size:11px}
+.cell{border-left:1px solid var(--line);padding:4px 5px 6px;min-height:80px;
+  display:flex;flex-direction:column;gap:2px;text-align:left;width:100%;overflow:hidden}
+.cell.we{background:var(--weekend)}
+.cell.ex{background:var(--ev-w)}
+.cell.out{background:repeating-linear-gradient(135deg,transparent 0 5px,var(--line) 5px 6px);opacity:.4;cursor:default}
+.cell.tod{box-shadow:inset 0 0 0 2px var(--accent)}
+.cell .n{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;line-height:1.2}
+.cell.tod .n{color:var(--accent-ink)}
+.cell .dcs{font-family:"IBM Plex Mono",monospace;font-size:9.5px;color:var(--ink-3);line-height:1.2}
+.cell .evb{background:var(--ev);color:var(--on-ev);font-size:10px;font-weight:700;
+  border-radius:4px;padding:1px 4px;margin:1px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .ci{font-size:10.5px;line-height:1.35;color:var(--ink-2);border-left:2px solid var(--c);
+  padding-left:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .ci.done{color:var(--ink-3);text-decoration:line-through}
+.cell .more{font-size:9.5px;color:var(--ink-3)}
+@media(max-width:700px){
+  .grow{grid-template-columns:46px repeat(7,1fr)}
+  .cell{min-height:62px;padding:3px}
+  .cell .ci{font-size:9.5px}
+  .cell .evb{font-size:9px;padding:0 3px}
+  .grail{padding:4px;gap:2px}
+}
+
+/* ---------- editor ---------- */
+.scrim{position:fixed;inset:0;background:rgba(19,28,38,.34);z-index:40;opacity:0;pointer-events:none;transition:opacity .16s}
+.scrim.on{opacity:1;pointer-events:auto}
+.ed{position:fixed;z-index:50;background:var(--surface);box-shadow:var(--shadow);
+  display:flex;flex-direction:column;transition:transform .18s ease;
+  right:0;top:0;bottom:0;width:min(380px,100%);border-left:1px solid var(--line);transform:translateX(101%)}
+.ed.on{transform:none}
+@media(max-width:860px){
+  .ed{left:0;right:0;top:auto;bottom:0;width:auto;max-height:80vh;border-left:none;
+      border-top:1px solid var(--line);border-radius:14px 14px 0 0;transform:translateY(101%)}
+}
+@media(prefers-reduced-motion:reduce){.ed,.scrim{transition:none}}
+.edh{display:flex;align-items:center;gap:8px;padding:12px 14px 10px;border-bottom:1px solid var(--line)}
+.edh .dt{font-family:"Noto Serif TC",serif;font-size:17px;font-weight:600;line-height:1.2}
+.edh .dsub{font-size:11px;color:var(--ink-3);font-family:"IBM Plex Mono",monospace}
+.edh .evtag{display:inline-block;background:var(--ev);color:var(--on-ev);font-family:"Noto Sans TC",sans-serif;
+  font-size:10.5px;font-weight:700;border-radius:4px;padding:0 5px;margin-left:5px}
+.nav{margin-left:auto;display:flex;gap:4px}
+.nav button{width:28px;height:28px;border:1px solid var(--line);border-radius:7px;
+  display:grid;place-items:center;color:var(--ink-2);font-size:13px}
+.nav button:hover{border-color:var(--accent);color:var(--accent-ink)}
+.wsel{display:flex;gap:5px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.wsel .lb{font-size:11px;color:var(--ink-3);margin-right:2px}
+.wsel button{font-size:11.5px;padding:2px 8px;border:1px solid var(--line);border-radius:6px;color:var(--ink-2)}
+.wsel button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.edform{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.picker{display:flex;gap:4px;flex-wrap:wrap}
+.pk{padding:3px 9px;border-radius:99px;border:1px solid var(--line);font-size:12px;color:var(--ink-2);background:var(--surface-2)}
+.pk[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:var(--on-ev);font-weight:500}
+.inrow{display:flex;gap:6px}
+.inrow input{flex:1 1 auto;min-width:0;font:inherit;font-family:inherit;font-size:13px;padding:7px 10px;
+  color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:8px}
+.inrow input:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.inrow button{padding:0 14px;border-radius:8px;background:var(--ink);color:var(--surface);font-size:13px;font-weight:500}
+.edlist{flex:1 1 auto;overflow-y:auto;padding:8px 14px 16px;min-height:80px}
+.row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:none}
+.row .tick{flex:none;width:16px;height:16px;border:1.5px solid var(--c);border-radius:5px;position:relative}
+.row.done .tick{background:var(--c)}
+.row.done .tick::after{content:"";position:absolute;left:4px;top:1px;width:3.5px;height:9px;
+  border:solid var(--tickmark);border-width:0 2px 2px 0;transform:rotate(42deg)}
+.row .tag{flex:none;font-size:10.5px;font-weight:700;color:var(--c);min-width:2.4em}
+.row .tx{flex:1 1 auto;font-size:13px;word-break:break-word}
+.row.done .tx{color:var(--ink-3);text-decoration:line-through}
+.row .del{flex:none;color:var(--ink-3);font-size:15px;padding:0 3px;line-height:1}
+.row .del:hover{color:var(--accent-ink)}
+.hint{font-size:11px;color:var(--ink-3);padding:0 14px 12px}
+.empty-note{font-size:12px;color:var(--ink-3);padding:10px 0;line-height:1.6}
+.status{position:fixed;left:16px;bottom:12px;z-index:60;font-size:11px;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:3px 12px;box-shadow:var(--shadow)}
+.offline{display:inline-block;font-size:10.5px;font-weight:700;color:var(--ot);border:1px dashed var(--ot);border-radius:4px;padding:0 5px;margin-left:4px;letter-spacing:.03em}
+</style>
+
+<header>
+  <div class="hwrap">
+    <div class="htop">
+      <div class="brand">
+        <h1>學測倒數行事曆</h1>
+        <div class="sub1">目標 <b>學測</b> <span class="mono">2027 / 01 / 22（五）– 01 / 23（六）</span> <span class="offline">離線備份</span></div>
+      </div>
+      <div class="count">
+        <span class="big mono" id="dbig">D-000</span>
+        <span class="lab">DAYS LEFT</span>
+      </div>
+    </div>
+    <div class="bar"><i id="pbar" style="width:0%"></i></div>
+    <div class="meta" id="meta"></div>
+    <div class="exams" id="exams"></div>
+    <div class="hbot">
+      <div class="chips" id="chips"></div>
+      <div class="views">
+        <button id="vlist" aria-pressed="true">清單</button>
+        <button id="vgrid" aria-pressed="false">月曆</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<div class="scrim" id="scrim"></div>
+<aside class="ed" id="ed" aria-hidden="true" aria-label="當日排程">
+  <div class="edh">
+    <div>
+      <div class="dt" id="edDate">—</div>
+      <div class="dsub" id="edSub">—</div>
+    </div>
+    <div class="nav">
+      <button id="prevD" title="前一天" aria-label="前一天">‹</button>
+      <button id="nextD" title="後一天" aria-label="後一天">›</button>
+      <button id="edClose" title="關閉" aria-label="關閉">✕</button>
+    </div>
+  </div>
+  <div class="wsel" id="wsel"><span class="lb">本週型態</span></div>
+  <div class="edform">
+    <div class="picker" id="picker"></div>
+    <div class="inrow">
+      <input id="edInput" placeholder="這天要做什麼？" autocomplete="off">
+      <button id="edAdd">加入</button>
+    </div>
+  </div>
+  <div class="edlist" id="edList"></div>
+  <div class="hint">Enter 加入 · Esc 關閉 · ‹ › 換日連排</div>
+</aside>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- constants ---------- */
+var START="2026-09-05", TARGET="2027-01-22", END="2027-01-23";
+var MONTHS=[["2026-09","九月"],["2026-10","十月"],["2026-11","十一月"],["2026-12","十二月"],["2027-01","一月"]];
+var WD=["一","二","三","四","五","六","日"];
+var SUBJ=[
+  {k:"en",n:"英",full:"英文",pct:35,c:"var(--en)"},
+  {k:"ma",n:"數A",full:"數學A",pct:25,c:"var(--ma)"},
+  {k:"ch",n:"國",full:"國文",pct:15,c:"var(--ch)"},
+  {k:"sc",n:"自",full:"自然",pct:15,c:"var(--sc)"},
+  {k:"po",n:"歷程",full:"學習歷程",pct:10,c:"var(--po)"},
+  {k:"ot",n:"其他",full:"其他",pct:0,c:"var(--ot)"}
+];
+var SM={}; SUBJ.forEach(function(s){SM[s.k]=s;});
+var WTYPES=[["regular","常規週"],["review","段考複習週"],["midterm","段考週"],["exam","考試週"],["off","放假／彈性"]];
+var WTM={}; WTYPES.forEach(function(w){WTM[w[0]]=w[1];});
+
+var EXAMS=[
+  {short:"一段",  full:"第一次段考", kind:"mid",  days:["2026-10-12","2026-10-13"]},
+  {short:"英聽①", full:"第一次英聽", kind:"lis",  days:["2026-10-17"]},
+  {short:"三模",  full:"第三次模擬考", kind:"mock", days:["2026-10-28","2026-10-29"]},
+  {short:"二段",  full:"第二次段考", kind:"mid",  days:["2026-11-25","2026-11-26"]},
+  {short:"四模",  full:"第四次模擬考", kind:"mock", days:["2026-12-08","2026-12-09"]},
+  {short:"英聽②", full:"第二次英聽", kind:"lis",  days:["2026-12-12"]},
+  {short:"期末",  full:"期末考",     kind:"mid",  days:["2026-12-30","2026-12-31"]},
+  {short:"學測",  full:"學科能力測驗", kind:"gsat", days:["2027-01-22","2027-01-23"]}
+];
+var EV={};
+EXAMS.forEach(function(x){
+  x.days.forEach(function(d,i){
+    EV[d]={short:x.short,full:x.full,kind:x.kind,part:i+1,of:x.days.length,first:x.days[0]};
+  });
+});
+
+/* ---------- date helpers ---------- */
+function D(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
+function key(d){
+  var m=d.getMonth()+1,day=d.getDate();
+  return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(day<10?"0":"")+day;
+}
+function addDays(d,n){var x=new Date(d.getTime());x.setDate(x.getDate()+n);return x;}
+function diff(a,b){return Math.round((D(b)-D(a))/86400000);}
+function mondayOf(d){var x=new Date(d.getTime());x.setDate(x.getDate()-((x.getDay()+6)%7));return x;}
+function col(d){return (d.getDay()+6)%7;}
+function md(dk){return dk.slice(5).replace("-","/");}
+var todayKey=(function(){
+  var t=key(new Date());
+  if(t<START)return START;
+  if(t>END)return END;
+  return t;
+})();
+var TOTAL=diff(START,TARGET);
+var W1=mondayOf(D(START));
+function weekKey(dk){return key(mondayOf(D(dk)));}
+function weekNo(wk){return Math.round((D(wk)-W1)/604800000)+1;}
+var LASTW=weekNo(weekKey(END));
+function inRange(dk){return dk>=START&&dk<=END;}
+// 段考進度：期末考前的每個禮拜日，整格框起來
+var PROG_END="2026-12-27";
+function isProg(dk){return dk<=PROG_END&&col(D(dk))===6;}
+function dcLabel(dk){
+  if(dk===TARGET)return "D-DAY";
+  if(dk>TARGET)return "＋"+diff(TARGET,dk);
+  return "D-"+diff(dk,TARGET);
+}
+
+/* ---------- state ---------- */
+var state={days:{},weeks:{},view:"list",filter:null,open:null};
+var db=null,dirty={},saveT=null;
+var LS="xt-cal-v1";
+
+var SEED={"days":{"2026-09-05":[{"done":true,"id":"v0","s":"en","t":"每日單字進度"},{"done":true,"id":"s0","s":"en","t":"克漏字 第 1 回"},{"done":true,"id":"s20","s":"en","t":"英文閱測 第 1 回"},{"done":true,"id":"s4s","s":"ch","t":"國文閱測 第 1 回"}],"2026-09-06":[{"done":true,"id":"v1","s":"en","t":"每日單字進度"},{"done":true,"id":"s1","s":"en","t":"克漏字 第 2 回"},{"done":true,"id":"s21","s":"en","t":"英文閱測 第 2 回"},{"done":true,"id":"s4t","s":"ch","t":"國文閱測 第 2 回"}],"2026-09-07":[{"done":true,"id":"v2","s":"en","t":"每日單字進度"},{"done":true,"id":"s2","s":"en","t":"克漏字 第 3 回"},{"done":true,"id":"s22","s":"en","t":"英文閱測 第 3 回"},{"done":true,"id":"s4u","s":"ch","t":"國文閱測 第 3 回"},{"done":true,"id":"c0","s":"ma","t":"對話式 7-1"},{"done":false,"id":"n0","s":"sc","t":"化學複習"}],"2026-09-08":[{"done":true,"id":"v3","s":"en","t":"每日單字進度"},{"done":false,"id":"s3","s":"en","t":"克漏字 第 4 回"},{"done":false,"id":"s23","s":"en","t":"英文閱測 第 4 回"},{"done":false,"id":"s4v","s":"ch","t":"國文閱測 第 4 回"},{"done":false,"id":"c1","s":"ma","t":"對話式 7-2"},{"done":true,"id":"n1","s":"sc","t":"物理複習"},{"done":false,"id":"mtsqof6gsj8x","s":"en","t":"英文單字50"}],"2026-09-09":[{"done":false,"id":"v4","s":"en","t":"每日單字進度"},{"done":false,"id":"s4","s":"en","t":"克漏字 第 5 回"},{"done":false,"id":"s24","s":"en","t":"英文閱測 第 5 回"},{"done":false,"id":"s4w","s":"ch","t":"國文閱測 第 5 回"},{"done":false,"id":"d0","s":"ma","t":"數學模卷練習"},{"done":false,"id":"d1","s":"ch","t":"國寫"},{"done":false,"id":"d2","s":"en","t":"英文作文"}],"2026-09-10":[{"done":false,"id":"v5","s":"en","t":"每日單字進度"},{"done":false,"id":"s5","s":"en","t":"克漏字 第 6 回"},{"done":false,"id":"s25","s":"en","t":"英文閱測 第 6 回"},{"done":false,"id":"s4x","s":"ch","t":"國文閱測 第 6 回"},{"done":false,"id":"c2","s":"ma","t":"對話式 7-3"},{"done":false,"id":"n2","s":"sc","t":"生物複習"}],"2026-09-11":[{"done":false,"id":"v6","s":"en","t":"每日單字進度"},{"done":false,"id":"s6","s":"en","t":"克漏字 第 7 回"},{"done":false,"id":"s26","s":"en","t":"英文閱測 第 7 回"},{"done":false,"id":"s4y","s":"ch","t":"國文閱測 第 7 回"},{"done":false,"id":"c3","s":"ma","t":"對話式 7-4"},{"done":false,"id":"n3","s":"sc","t":"地科複習"}],"2026-09-12":[{"done":false,"id":"v7","s":"en","t":"每日單字進度"},{"done":false,"id":"s7","s":"en","t":"克漏字 第 8 回"},{"done":false,"id":"s27","s":"en","t":"英文閱測 第 8 回"},{"done":false,"id":"s4z","s":"ch","t":"國文閱測 第 8 回"},{"done":false,"id":"m4","s":"en","t":"英文模模考"},{"done":false,"id":"m5","s":"ma","t":"數學模模考"},{"done":false,"id":"m6","s":"ch","t":"國文模模考"},{"done":false,"id":"m7","s":"sc","t":"自然模模考"}],"2026-09-13":[{"done":false,"id":"v8","s":"en","t":"每日單字進度"},{"done":false,"id":"s8","s":"en","t":"克漏字 第 9 回"},{"done":false,"id":"s28","s":"en","t":"英文閱測 第 9 回"},{"done":false,"id":"s50","s":"ch","t":"國文閱測 第 9 回"}],"2026-09-14":[{"done":false,"id":"v9","s":"en","t":"每日單字進度"},{"done":false,"id":"s9","s":"en","t":"克漏字 第 10 回"},{"done":false,"id":"s29","s":"en","t":"英文閱測 第 10 回"},{"done":false,"id":"s51","s":"ch","t":"國文閱測 第 10 回"},{"done":false,"id":"c4","s":"ma","t":"對話式 9-1"},{"done":false,"id":"n4","s":"sc","t":"化學複習"}],"2026-09-15":[{"done":false,"id":"va","s":"en","t":"每日單字進度"},{"done":false,"id":"sa","s":"en","t":"克漏字 第 11 回"},{"done":false,"id":"s2a","s":"en","t":"英文閱測 第 11 回"},{"done":false,"id":"s52","s":"ch","t":"國文閱測 第 11 回"},{"done":false,"id":"c5","s":"ma","t":"對話式 9-2"},{"done":false,"id":"n5","s":"sc","t":"物理複習"}],"2026-09-16":[{"done":false,"id":"vb","s":"en","t":"每日單字進度"},{"done":false,"id":"sb","s":"en","t":"克漏字 第 12 回"},{"done":false,"id":"s2b","s":"en","t":"英文閱測 第 12 回"},{"done":false,"id":"s53","s":"ch","t":"國文閱測 第 12 回"},{"done":false,"id":"d3","s":"ma","t":"數學模卷練習"},{"done":false,"id":"d4","s":"ch","t":"國寫"},{"done":false,"id":"d5","s":"en","t":"英文作文"}],"2026-09-17":[{"done":false,"id":"vc","s":"en","t":"每日單字進度"},{"done":false,"id":"sc","s":"en","t":"克漏字 第 13 回"},{"done":false,"id":"s2c","s":"en","t":"英文閱測 第 13 回"},{"done":false,"id":"s54","s":"ch","t":"國文閱測 第 13 回"},{"done":false,"id":"c6","s":"ma","t":"對話式 9-3"},{"done":false,"id":"n6","s":"sc","t":"生物複習"}],"2026-09-18":[{"done":false,"id":"vd","s":"en","t":"每日單字進度"},{"done":false,"id":"sd","s":"en","t":"克漏字 第 14 回"},{"done":false,"id":"s2d","s":"en","t":"英文閱測 第 14 回"},{"done":false,"id":"s55","s":"ch","t":"國文閱測 第 14 回"},{"done":false,"id":"c7","s":"ma","t":"對話式 9-4"},{"done":false,"id":"n7","s":"sc","t":"地科複習"}],"2026-09-19":[{"done":false,"id":"ve","s":"en","t":"每日單字進度"},{"done":false,"id":"se","s":"en","t":"克漏字 第 15 回"},{"done":false,"id":"s2e","s":"en","t":"英文閱測 第 15 回"},{"done":false,"id":"s56","s":"ch","t":"國文閱測 第 15 回"},{"done":false,"id":"m8","s":"en","t":"英文模模考"},{"done":false,"id":"m9","s":"ma","t":"數學模模考"},{"done":false,"id":"ma","s":"ch","t":"國文模模考"},{"done":false,"id":"mb","s":"sc","t":"自然模模考"}],"2026-09-20":[{"done":false,"id":"vf","s":"en","t":"每日單字進度"},{"done":false,"id":"sf","s":"en","t":"克漏字 第 16 回"},{"done":false,"id":"s2f","s":"en","t":"英文閱測 第 16 回"},{"done":false,"id":"s57","s":"ch","t":"國文閱測 第 16 回"}],"2026-09-21":[{"done":false,"id":"vg","s":"en","t":"每日單字進度"},{"done":false,"id":"sg","s":"en","t":"克漏字 第 17 回"},{"done":false,"id":"s2g","s":"en","t":"英文閱測 第 17 回"},{"done":false,"id":"s58","s":"ch","t":"國文閱測 第 17 回"},{"done":false,"id":"c8","s":"ma","t":"對話式 10-1"},{"done":false,"id":"n8","s":"sc","t":"化學複習"}],"2026-09-22":[{"done":false,"id":"vh","s":"en","t":"每日單字進度"},{"done":false,"id":"sh","s":"en","t":"克漏字 第 18 回"},{"done":false,"id":"s2h","s":"en","t":"英文閱測 第 18 回"},{"done":false,"id":"s59","s":"ch","t":"國文閱測 第 18 回"},{"done":false,"id":"c9","s":"ma","t":"對話式 10-2"},{"done":false,"id":"n9","s":"sc","t":"物理複習"}],"2026-09-23":[{"done":false,"id":"vi","s":"en","t":"每日單字進度"},{"done":false,"id":"si","s":"en","t":"克漏字 第 19 回"},{"done":false,"id":"s2i","s":"en","t":"英文閱測 第 19 回"},{"done":false,"id":"s5a","s":"ch","t":"國文閱測 第 19 回"},{"done":false,"id":"d6","s":"ma","t":"數學模卷練習"},{"done":false,"id":"d7","s":"ch","t":"國寫"},{"done":false,"id":"d8","s":"en","t":"英文作文"}],"2026-09-24":[{"done":false,"id":"vj","s":"en","t":"每日單字進度"},{"done":false,"id":"sj","s":"en","t":"克漏字 第 20 回"},{"done":false,"id":"s2j","s":"en","t":"英文閱測 第 20 回"},{"done":false,"id":"s5b","s":"ch","t":"國文閱測 第 20 回"},{"done":false,"id":"ca","s":"ma","t":"對話式 10-3"},{"done":false,"id":"na","s":"sc","t":"生物複習"}],"2026-09-25":[{"done":false,"id":"vk","s":"en","t":"每日單字進度"},{"done":false,"id":"sk","s":"en","t":"克漏字 第 21 回"},{"done":false,"id":"s2k","s":"en","t":"英文閱測 第 21 回"},{"done":false,"id":"s5c","s":"ch","t":"國文閱測 第 21 回"},{"done":false,"id":"cb","s":"ma","t":"對話式 10-4"},{"done":false,"id":"nb","s":"sc","t":"地科複習"}],"2026-09-26":[{"done":false,"id":"vl","s":"en","t":"每日單字進度"},{"done":false,"id":"sl","s":"en","t":"克漏字 第 22 回"},{"done":false,"id":"s2l","s":"en","t":"英文閱測 第 22 回"},{"done":false,"id":"s5d","s":"ch","t":"國文閱測 第 22 回"},{"done":false,"id":"mc","s":"en","t":"英文模模考"},{"done":false,"id":"md","s":"ma","t":"數學模模考"},{"done":false,"id":"me","s":"ch","t":"國文模模考"},{"done":false,"id":"mf","s":"sc","t":"自然模模考"}],"2026-09-27":[{"done":false,"id":"vm","s":"en","t":"每日單字進度"},{"done":false,"id":"sm","s":"en","t":"克漏字 第 23 回"},{"done":false,"id":"s2m","s":"en","t":"英文閱測 第 23 回"},{"done":false,"id":"s5e","s":"ch","t":"國文閱測 第 23 回"}],"2026-09-28":[{"done":false,"id":"vn","s":"en","t":"每日單字進度"},{"done":false,"id":"sn","s":"en","t":"克漏字 第 24 回"},{"done":false,"id":"s2n","s":"en","t":"英文閱測 第 24 回"},{"done":false,"id":"s5f","s":"ch","t":"國文閱測 第 24 回"},{"done":false,"id":"cc","s":"ma","t":"對話式 11-1"},{"done":false,"id":"nc","s":"sc","t":"化學複習"}],"2026-09-29":[{"done":false,"id":"vo","s":"en","t":"每日單字進度"},{"done":false,"id":"so","s":"en","t":"克漏字 第 25 回"},{"done":false,"id":"s2o","s":"en","t":"英文閱測 第 25 回"},{"done":false,"id":"s5g","s":"ch","t":"國文閱測 第 25 回"},{"done":false,"id":"cd","s":"ma","t":"對話式 11-2"},{"done":false,"id":"nd","s":"sc","t":"物理複習"}],"2026-09-30":[{"done":false,"id":"vp","s":"en","t":"每日單字進度"},{"done":false,"id":"sp","s":"en","t":"克漏字 第 26 回"},{"done":false,"id":"s2p","s":"en","t":"英文閱測 第 26 回"},{"done":false,"id":"s5h","s":"ch","t":"國文閱測 第 26 回"},{"done":false,"id":"d9","s":"ma","t":"數學模卷練習"},{"done":false,"id":"da","s":"ch","t":"國寫"},{"done":false,"id":"db","s":"en","t":"英文作文"}],"2026-10-01":[{"done":false,"id":"vq","s":"en","t":"每日單字進度"},{"done":false,"id":"sq","s":"en","t":"克漏字 第 27 回"},{"done":false,"id":"s2q","s":"en","t":"英文閱測 第 27 回"},{"done":false,"id":"s5i","s":"ch","t":"國文閱測 第 27 回"},{"done":false,"id":"ce","s":"ma","t":"對話式 11-3"},{"done":false,"id":"ne","s":"sc","t":"生物複習"}],"2026-10-02":[{"done":false,"id":"vr","s":"en","t":"每日單字進度"},{"done":false,"id":"sr","s":"en","t":"克漏字 第 28 回"},{"done":false,"id":"s2r","s":"en","t":"英文閱測 第 28 回"},{"done":false,"id":"s5j","s":"ch","t":"國文閱測 第 28 回"},{"done":false,"id":"cf","s":"ma","t":"對話式 11-4"},{"done":false,"id":"nf","s":"sc","t":"地科複習"}],"2026-10-03":[{"done":false,"id":"vs","s":"en","t":"每日單字進度"},{"done":false,"id":"ss","s":"en","t":"克漏字 第 29 回"},{"done":false,"id":"s2s","s":"en","t":"英文閱測 第 29 回"},{"done":false,"id":"s5k","s":"ch","t":"國文閱測 第 29 回"},{"done":false,"id":"mg","s":"en","t":"英文模模考"},{"done":false,"id":"mh","s":"ma","t":"數學模模考"},{"done":false,"id":"mi","s":"ch","t":"國文模模考"},{"done":false,"id":"mj","s":"sc","t":"自然模模考"}],"2026-10-04":[{"done":false,"id":"vt","s":"en","t":"每日單字進度"},{"done":false,"id":"st","s":"en","t":"克漏字 第 30 回"},{"done":false,"id":"s2t","s":"en","t":"英文閱測 第 30 回"},{"done":false,"id":"s5l","s":"ch","t":"國文閱測 第 30 回"}],"2026-10-05":[{"done":false,"id":"vu","s":"en","t":"每日單字進度"},{"done":false,"id":"su","s":"en","t":"克漏字 第 31 回"},{"done":false,"id":"s2u","s":"en","t":"英文閱測 第 31 回"},{"done":false,"id":"s5m","s":"ch","t":"國文閱測 第 31 回"}],"2026-10-06":[{"done":false,"id":"vv","s":"en","t":"每日單字進度"},{"done":false,"id":"sv","s":"en","t":"克漏字 第 32 回"},{"done":false,"id":"s2v","s":"en","t":"英文閱測 第 32 回"},{"done":false,"id":"s5n","s":"ch","t":"國文閱測 第 32 回"}],"2026-10-07":[{"done":false,"id":"vw","s":"en","t":"每日單字進度"},{"done":false,"id":"sw","s":"en","t":"克漏字 第 33 回"},{"done":false,"id":"s2w","s":"en","t":"英文閱測 第 33 回"},{"done":false,"id":"s5o","s":"ch","t":"國文閱測 第 33 回"}],"2026-10-08":[{"done":false,"id":"vx","s":"en","t":"每日單字進度"},{"done":false,"id":"sx","s":"en","t":"克漏字 第 34 回"},{"done":false,"id":"s2x","s":"en","t":"英文閱測 第 34 回"},{"done":false,"id":"s5p","s":"ch","t":"國文閱測 第 34 回"}],"2026-10-09":[{"done":false,"id":"vy","s":"en","t":"每日單字進度"},{"done":false,"id":"sy","s":"en","t":"克漏字 第 35 回"},{"done":false,"id":"s2y","s":"en","t":"英文閱測 第 35 回"},{"done":false,"id":"s5q","s":"ch","t":"國文閱測 第 35 回"}],"2026-10-10":[{"done":false,"id":"vz","s":"en","t":"每日單字進度"},{"done":false,"id":"sz","s":"en","t":"克漏字 第 36 回"},{"done":false,"id":"s2z","s":"en","t":"英文閱測 第 36 回"},{"done":false,"id":"s5r","s":"ch","t":"國文閱測 第 36 回"}],"2026-10-11":[{"done":false,"id":"v10","s":"en","t":"每日單字進度"}],"2026-10-12":[{"done":false,"id":"v11","s":"en","t":"每日單字進度"}],"2026-10-13":[{"done":false,"id":"v12","s":"en","t":"每日單字進度"},{"done":false,"id":"s10","s":"en","t":"克漏字 第 37 回"},{"done":false,"id":"s30","s":"en","t":"英文閱測 第 37 回"},{"done":false,"id":"s5s","s":"ch","t":"國文閱測 第 37 回"}],"2026-10-14":[{"done":false,"id":"v13","s":"en","t":"每日單字進度"},{"done":false,"id":"s11","s":"en","t":"克漏字 第 38 回"},{"done":false,"id":"s31","s":"en","t":"英文閱測 第 38 回"},{"done":false,"id":"s5t","s":"ch","t":"國文閱測 第 38 回"},{"done":false,"id":"dc","s":"ma","t":"數學模卷練習"},{"done":false,"id":"dd","s":"ch","t":"國寫"},{"done":false,"id":"de","s":"en","t":"英文作文"}],"2026-10-15":[{"done":false,"id":"v14","s":"en","t":"每日單字進度"},{"done":false,"id":"s12","s":"en","t":"克漏字 第 39 回"},{"done":false,"id":"s32","s":"en","t":"英文閱測 第 39 回"},{"done":false,"id":"s5u","s":"ch","t":"國文閱測 第 39 回"},{"done":false,"id":"r1015","s":"sc","t":"生物複習"}],"2026-10-16":[{"done":false,"id":"v15","s":"en","t":"每日單字進度"}],"2026-10-17":[{"done":false,"id":"v16","s":"en","t":"每日單字進度"},{"done":false,"id":"s13","s":"en","t":"克漏字 第 40 回"},{"done":false,"id":"s33","s":"en","t":"英文閱測 第 40 回"},{"done":false,"id":"s5v","s":"ch","t":"國文閱測 第 40 回"}],"2026-10-18":[{"done":false,"id":"v17","s":"en","t":"每日單字進度"},{"done":false,"id":"s14","s":"en","t":"克漏字 第 41 回"},{"done":false,"id":"s34","s":"en","t":"英文閱測 第 41 回"},{"done":false,"id":"s5w","s":"ch","t":"國文閱測 第 41 回"}],"2026-10-19":[{"done":false,"id":"v18","s":"en","t":"每日單字進度"},{"done":false,"id":"s15","s":"en","t":"克漏字 第 42 回"},{"done":false,"id":"s35","s":"en","t":"英文閱測 第 42 回"},{"done":false,"id":"s5x","s":"ch","t":"國文閱測 第 42 回"},{"done":false,"id":"nh","s":"sc","t":"化學複習"}],"2026-10-20":[{"done":false,"id":"v19","s":"en","t":"每日單字進度"},{"done":false,"id":"s16","s":"en","t":"克漏字 第 43 回"},{"done":false,"id":"s36","s":"en","t":"英文閱測 第 43 回"},{"done":false,"id":"s5y","s":"ch","t":"國文閱測 第 43 回"},{"done":false,"id":"ni","s":"sc","t":"物理複習"}],"2026-10-21":[{"done":false,"id":"v1a","s":"en","t":"每日單字進度"},{"done":false,"id":"s17","s":"en","t":"克漏字 第 44 回"},{"done":false,"id":"s37","s":"en","t":"英文閱測 第 44 回"},{"done":false,"id":"s5z","s":"ch","t":"國文閱測 第 44 回"},{"done":false,"id":"df","s":"ma","t":"數學模卷練習"},{"done":false,"id":"dg","s":"ch","t":"國寫"},{"done":false,"id":"dh","s":"en","t":"英文作文"}],"2026-10-22":[{"done":false,"id":"v1b","s":"en","t":"每日單字進度"},{"done":false,"id":"s18","s":"en","t":"克漏字 第 45 回"},{"done":false,"id":"s38","s":"en","t":"英文閱測 第 45 回"},{"done":false,"id":"s60","s":"ch","t":"國文閱測 第 45 回"},{"done":false,"id":"nj","s":"sc","t":"生物複習"}],"2026-10-23":[{"done":false,"id":"v1c","s":"en","t":"每日單字進度"},{"done":false,"id":"s19","s":"en","t":"克漏字 第 46 回"},{"done":false,"id":"s39","s":"en","t":"英文閱測 第 46 回"},{"done":false,"id":"s61","s":"ch","t":"國文閱測 第 46 回"},{"done":false,"id":"nk","s":"sc","t":"地科複習"}],"2026-10-24":[{"done":false,"id":"v1d","s":"en","t":"每日單字進度"},{"done":false,"id":"s1a","s":"en","t":"克漏字 第 47 回"},{"done":false,"id":"s3a","s":"en","t":"英文閱測 第 47 回"},{"done":false,"id":"s62","s":"ch","t":"國文閱測 第 47 回"},{"done":false,"id":"mk","s":"en","t":"英文模模考"},{"done":false,"id":"ml","s":"ma","t":"數學模模考"},{"done":false,"id":"mm","s":"ch","t":"國文模模考"},{"done":false,"id":"mn","s":"sc","t":"自然模模考"}],"2026-10-25":[{"done":false,"id":"v1e","s":"en","t":"每日單字進度"},{"done":false,"id":"s1b","s":"en","t":"克漏字 第 48 回"},{"done":false,"id":"s3b","s":"en","t":"英文閱測 第 48 回"},{"done":false,"id":"s63","s":"ch","t":"國文閱測 第 48 回"}],"2026-10-26":[{"done":false,"id":"v1f","s":"en","t":"每日單字進度"},{"done":false,"id":"s1c","s":"en","t":"克漏字 第 49 回"},{"done":false,"id":"s3c","s":"en","t":"英文閱測 第 49 回"},{"done":false,"id":"s64","s":"ch","t":"國文閱測 第 49 回"},{"done":false,"id":"nl","s":"sc","t":"化學複習"}],"2026-10-27":[{"done":false,"id":"v1g","s":"en","t":"每日單字進度"}],"2026-10-28":[{"done":false,"id":"v1h","s":"en","t":"每日單字進度"}],"2026-10-29":[{"done":false,"id":"v1i","s":"en","t":"每日單字進度"},{"done":false,"id":"s1d","s":"en","t":"克漏字 第 50 回"},{"done":false,"id":"s3d","s":"en","t":"英文閱測 第 50 回"},{"done":false,"id":"s65","s":"ch","t":"國文閱測 第 50 回"}],"2026-10-30":[{"done":false,"id":"v1j","s":"en","t":"每日單字進度"},{"done":false,"id":"s1e","s":"en","t":"克漏字 第 51 回"},{"done":false,"id":"s3e","s":"en","t":"英文閱測 第 51 回"},{"done":false,"id":"s66","s":"ch","t":"國文閱測 第 51 回"},{"done":false,"id":"nm","s":"sc","t":"地科複習"}],"2026-10-31":[{"done":false,"id":"v1k","s":"en","t":"每日單字進度"},{"done":false,"id":"s1f","s":"en","t":"克漏字 第 52 回"},{"done":false,"id":"s3f","s":"en","t":"英文閱測 第 52 回"},{"done":false,"id":"s67","s":"ch","t":"國文閱測 第 52 回"},{"done":false,"id":"mo","s":"en","t":"英文模模考"},{"done":false,"id":"mp","s":"ma","t":"數學模模考"},{"done":false,"id":"mq","s":"ch","t":"國文模模考"},{"done":false,"id":"mr","s":"sc","t":"自然模模考"}],"2026-11-01":[{"done":false,"id":"v1l","s":"en","t":"每日單字進度"},{"done":false,"id":"s1g","s":"en","t":"克漏字 第 53 回"},{"done":false,"id":"s3g","s":"en","t":"英文閱測 第 53 回"},{"done":false,"id":"s68","s":"ch","t":"國文閱測 第 53 回"}],"2026-11-02":[{"done":false,"id":"v1m","s":"en","t":"每日單字進度"},{"done":false,"id":"s1h","s":"en","t":"克漏字 第 54 回"},{"done":false,"id":"s3h","s":"en","t":"英文閱測 第 54 回"},{"done":false,"id":"s69","s":"ch","t":"國文閱測 第 54 回"},{"done":false,"id":"cg","s":"ma","t":"對話式 12-1"},{"done":false,"id":"nn","s":"sc","t":"化學複習"}],"2026-11-03":[{"done":false,"id":"v1n","s":"en","t":"每日單字進度"},{"done":false,"id":"s1i","s":"en","t":"克漏字 第 55 回"},{"done":false,"id":"s3i","s":"en","t":"英文閱測 第 55 回"},{"done":false,"id":"s6a","s":"ch","t":"國文閱測 第 55 回"},{"done":false,"id":"ch","s":"ma","t":"對話式 12-2"},{"done":false,"id":"no","s":"sc","t":"物理複習"}],"2026-11-04":[{"done":false,"id":"v1o","s":"en","t":"每日單字進度"},{"done":false,"id":"s1j","s":"en","t":"克漏字 第 56 回"},{"done":false,"id":"s3j","s":"en","t":"英文閱測 第 56 回"},{"done":false,"id":"s6b","s":"ch","t":"國文閱測 第 56 回"},{"done":false,"id":"di","s":"ma","t":"數學模卷練習"},{"done":false,"id":"dj","s":"ch","t":"國寫"},{"done":false,"id":"dk","s":"en","t":"英文作文"}],"2026-11-05":[{"done":false,"id":"v1p","s":"en","t":"每日單字進度"},{"done":false,"id":"s1k","s":"en","t":"克漏字 第 57 回"},{"done":false,"id":"s3k","s":"en","t":"英文閱測 第 57 回"},{"done":false,"id":"s6c","s":"ch","t":"國文閱測 第 57 回"},{"done":false,"id":"ci","s":"ma","t":"對話式 12-3"},{"done":false,"id":"np","s":"sc","t":"生物複習"}],"2026-11-06":[{"done":false,"id":"v1q","s":"en","t":"每日單字進度"},{"done":false,"id":"s1l","s":"en","t":"克漏字 第 58 回"},{"done":false,"id":"s3l","s":"en","t":"英文閱測 第 58 回"},{"done":false,"id":"s6d","s":"ch","t":"國文閱測 第 58 回"},{"done":false,"id":"cj","s":"ma","t":"對話式 12-4"},{"done":false,"id":"nq","s":"sc","t":"地科複習"}],"2026-11-07":[{"done":false,"id":"v1r","s":"en","t":"每日單字進度"},{"done":false,"id":"s1m","s":"en","t":"克漏字 第 59 回"},{"done":false,"id":"s3m","s":"en","t":"英文閱測 第 59 回"},{"done":false,"id":"s6e","s":"ch","t":"國文閱測 第 59 回"},{"done":false,"id":"ms","s":"en","t":"英文模模考"},{"done":false,"id":"mt","s":"ma","t":"數學模模考"},{"done":false,"id":"mu","s":"ch","t":"國文模模考"},{"done":false,"id":"mv","s":"sc","t":"自然模模考"}],"2026-11-08":[{"done":false,"id":"v1s","s":"en","t":"每日單字進度"},{"done":false,"id":"s1n","s":"en","t":"克漏字 第 60 回"},{"done":false,"id":"s3n","s":"en","t":"英文閱測 第 60 回"},{"done":false,"id":"s6f","s":"ch","t":"國文閱測 第 60 回"}],"2026-11-09":[{"done":false,"id":"v1t","s":"en","t":"每日單字進度"},{"done":false,"id":"s1o","s":"en","t":"克漏字 第 61 回"},{"done":false,"id":"s3o","s":"en","t":"英文閱測 第 61 回"},{"done":false,"id":"s6g","s":"ch","t":"國文閱測 第 61 回"},{"done":false,"id":"w0","s":"ma","t":"對話式 13-1"},{"done":false,"id":"nr","s":"sc","t":"化學複習"}],"2026-11-10":[{"done":false,"id":"v1u","s":"en","t":"每日單字進度"},{"done":false,"id":"s1p","s":"en","t":"克漏字 第 62 回"},{"done":false,"id":"s3p","s":"en","t":"英文閱測 第 62 回"},{"done":false,"id":"s6h","s":"ch","t":"國文閱測 第 62 回"},{"done":false,"id":"w1","s":"ma","t":"對話式 13-2"},{"done":false,"id":"ns","s":"sc","t":"物理複習"}],"2026-11-11":[{"done":false,"id":"v1v","s":"en","t":"每日單字進度"},{"done":false,"id":"s1q","s":"en","t":"克漏字 第 63 回"},{"done":false,"id":"s3q","s":"en","t":"英文閱測 第 63 回"},{"done":false,"id":"s6i","s":"ch","t":"國文閱測 第 63 回"},{"done":false,"id":"dl","s":"ma","t":"數學模卷練習"},{"done":false,"id":"dm","s":"ch","t":"國寫"},{"done":false,"id":"dn","s":"en","t":"英文作文"}],"2026-11-12":[{"done":false,"id":"v1w","s":"en","t":"每日單字進度"},{"done":false,"id":"s1r","s":"en","t":"克漏字 第 64 回"},{"done":false,"id":"s3r","s":"en","t":"英文閱測 第 64 回"},{"done":false,"id":"s6j","s":"ch","t":"國文閱測 第 64 回"},{"done":false,"id":"w2","s":"ma","t":"對話式 13-3"},{"done":false,"id":"nt","s":"sc","t":"生物複習"}],"2026-11-13":[{"done":false,"id":"v1x","s":"en","t":"每日單字進度"},{"done":false,"id":"s1s","s":"en","t":"克漏字 第 65 回"},{"done":false,"id":"s3s","s":"en","t":"英文閱測 第 65 回"},{"done":false,"id":"s6k","s":"ch","t":"國文閱測 第 65 回"},{"done":false,"id":"w3","s":"ma","t":"對話式 13-4"},{"done":false,"id":"nu","s":"sc","t":"地科複習"}],"2026-11-14":[{"done":false,"id":"v1y","s":"en","t":"每日單字進度"},{"done":false,"id":"s1t","s":"en","t":"克漏字 第 66 回"},{"done":false,"id":"s3t","s":"en","t":"英文閱測 第 66 回"},{"done":false,"id":"s6l","s":"ch","t":"國文閱測 第 66 回"},{"done":false,"id":"mw","s":"en","t":"英文模模考"},{"done":false,"id":"mx","s":"ma","t":"數學模模考"},{"done":false,"id":"my","s":"ch","t":"國文模模考"},{"done":false,"id":"mz","s":"sc","t":"自然模模考"}],"2026-11-15":[{"done":false,"id":"v1z","s":"en","t":"每日單字進度"},{"done":false,"id":"s1u","s":"en","t":"克漏字 第 67 回"},{"done":false,"id":"s3u","s":"en","t":"英文閱測 第 67 回"},{"done":false,"id":"s6m","s":"ch","t":"國文閱測 第 67 回"}],"2026-11-16":[{"done":false,"id":"v20","s":"en","t":"每日單字進度"},{"done":false,"id":"s1v","s":"en","t":"克漏字 第 68 回"},{"done":false,"id":"s3v","s":"en","t":"英文閱測 第 68 回"},{"done":false,"id":"s6n","s":"ch","t":"國文閱測 第 68 回"}],"2026-11-17":[{"done":false,"id":"v21","s":"en","t":"每日單字進度"},{"done":false,"id":"s1w","s":"en","t":"克漏字 第 69 回"},{"done":false,"id":"s3w","s":"en","t":"英文閱測 第 69 回"},{"done":false,"id":"s6o","s":"ch","t":"國文閱測 第 69 回"}],"2026-11-18":[{"done":false,"id":"v22","s":"en","t":"每日單字進度"},{"done":false,"id":"s1x","s":"en","t":"克漏字 第 70 回"},{"done":false,"id":"s3x","s":"en","t":"英文閱測 第 70 回"},{"done":false,"id":"s6p","s":"ch","t":"國文閱測 第 70 回"}],"2026-11-19":[{"done":false,"id":"v23","s":"en","t":"每日單字進度"},{"done":false,"id":"s1y","s":"en","t":"克漏字 第 71 回"},{"done":false,"id":"s3y","s":"en","t":"英文閱測 第 71 回"},{"done":false,"id":"s6q","s":"ch","t":"國文閱測 第 71 回"}],"2026-11-20":[{"done":false,"id":"v24","s":"en","t":"每日單字進度"},{"done":false,"id":"s1z","s":"en","t":"克漏字 第 72 回"},{"done":false,"id":"s3z","s":"en","t":"英文閱測 第 72 回"},{"done":false,"id":"s6r","s":"ch","t":"國文閱測 第 72 回"}],"2026-11-21":[{"done":false,"id":"v25","s":"en","t":"每日單字進度"},{"done":false,"id":"s40","s":"en","t":"英文閱測 第 73 回"},{"done":false,"id":"s6s","s":"ch","t":"國文閱測 第 73 回"}],"2026-11-22":[{"done":false,"id":"v26","s":"en","t":"每日單字進度"},{"done":false,"id":"s41","s":"en","t":"英文閱測 第 74 回"},{"done":false,"id":"s6t","s":"ch","t":"國文閱測 第 74 回"}],"2026-11-23":[{"done":false,"id":"v27","s":"en","t":"每日單字進度"},{"done":false,"id":"s42","s":"en","t":"英文閱測 第 75 回"},{"done":false,"id":"s6u","s":"ch","t":"國文閱測 第 75 回"}],"2026-11-24":[{"done":false,"id":"v28","s":"en","t":"每日單字進度"}],"2026-11-25":[{"done":false,"id":"v29","s":"en","t":"每日單字進度"}],"2026-11-26":[{"done":false,"id":"v2a","s":"en","t":"每日單字進度"},{"done":false,"id":"s43","s":"en","t":"英文閱測 第 76 回"},{"done":false,"id":"s6v","s":"ch","t":"國文閱測 第 76 回"}],"2026-11-27":[{"done":false,"id":"v2b","s":"en","t":"每日單字進度"},{"done":false,"id":"s44","s":"en","t":"英文閱測 第 77 回"},{"done":false,"id":"s6w","s":"ch","t":"國文閱測 第 77 回"},{"done":false,"id":"r1127","s":"sc","t":"地科複習"}],"2026-11-28":[{"done":false,"id":"v2c","s":"en","t":"每日單字進度"},{"done":false,"id":"s45","s":"en","t":"英文閱測 第 78 回"},{"done":false,"id":"s6x","s":"ch","t":"國文閱測 第 78 回"},{"done":false,"id":"m10","s":"en","t":"英文模模考"},{"done":false,"id":"m11","s":"ma","t":"數學模模考"},{"done":false,"id":"m12","s":"ch","t":"國文模模考"},{"done":false,"id":"m13","s":"sc","t":"自然模模考"}],"2026-11-29":[{"done":false,"id":"v2d","s":"en","t":"每日單字進度"},{"done":false,"id":"s46","s":"en","t":"英文閱測 第 79 回"},{"done":false,"id":"s6y","s":"ch","t":"國文閱測 第 79 回"}],"2026-11-30":[{"done":false,"id":"v2e","s":"en","t":"每日單字進度"},{"done":false,"id":"s47","s":"en","t":"英文閱測 第 80 回"},{"done":false,"id":"s6z","s":"ch","t":"國文閱測 第 80 回"},{"done":false,"id":"nx","s":"sc","t":"化學複習"}],"2026-12-01":[{"done":false,"id":"v2f","s":"en","t":"每日單字進度"},{"done":false,"id":"s48","s":"en","t":"英文閱測 第 81 回"},{"done":false,"id":"s70","s":"ch","t":"國文閱測 第 81 回"},{"done":false,"id":"ny","s":"sc","t":"物理複習"}],"2026-12-02":[{"done":false,"id":"v2g","s":"en","t":"每日單字進度"},{"done":false,"id":"s49","s":"en","t":"英文閱測 第 82 回"},{"done":false,"id":"s71","s":"ch","t":"國文閱測 第 82 回"},{"done":false,"id":"do","s":"ma","t":"數學模卷練習"},{"done":false,"id":"dp","s":"ch","t":"國寫"},{"done":false,"id":"dq","s":"en","t":"英文作文"}],"2026-12-03":[{"done":false,"id":"v2h","s":"en","t":"每日單字進度"},{"done":false,"id":"s4a","s":"en","t":"英文閱測 第 83 回"},{"done":false,"id":"s72","s":"ch","t":"國文閱測 第 83 回"},{"done":false,"id":"nz","s":"sc","t":"生物複習"}],"2026-12-04":[{"done":false,"id":"v2i","s":"en","t":"每日單字進度"},{"done":false,"id":"s4b","s":"en","t":"英文閱測 第 84 回"},{"done":false,"id":"s73","s":"ch","t":"國文閱測 第 84 回"},{"done":false,"id":"n10","s":"sc","t":"地科複習"}],"2026-12-05":[{"done":false,"id":"v2j","s":"en","t":"每日單字進度"},{"done":false,"id":"s4c","s":"en","t":"英文閱測 第 85 回"},{"done":false,"id":"s74","s":"ch","t":"國文閱測 第 85 回"},{"done":false,"id":"m14","s":"en","t":"英文模模考"},{"done":false,"id":"m15","s":"ma","t":"數學模模考"},{"done":false,"id":"m16","s":"ch","t":"國文模模考"},{"done":false,"id":"m17","s":"sc","t":"自然模模考"}],"2026-12-06":[{"done":false,"id":"v2k","s":"en","t":"每日單字進度"},{"done":false,"id":"s4d","s":"en","t":"英文閱測 第 86 回"},{"done":false,"id":"s75","s":"ch","t":"國文閱測 第 86 回"}],"2026-12-07":[{"done":false,"id":"v2l","s":"en","t":"每日單字進度"}],"2026-12-08":[{"done":false,"id":"v2m","s":"en","t":"每日單字進度"}],"2026-12-09":[{"done":false,"id":"v2n","s":"en","t":"每日單字進度"},{"done":false,"id":"s4e","s":"en","t":"英文閱測 第 87 回"},{"done":false,"id":"s76","s":"ch","t":"國文閱測 第 87 回"}],"2026-12-10":[{"done":false,"id":"v2o","s":"en","t":"每日單字進度"},{"done":false,"id":"s4f","s":"en","t":"英文閱測 第 88 回"},{"done":false,"id":"s77","s":"ch","t":"國文閱測 第 88 回"},{"done":false,"id":"n11","s":"sc","t":"生物複習"}],"2026-12-11":[{"done":false,"id":"v2p","s":"en","t":"每日單字進度"}],"2026-12-12":[{"done":false,"id":"v2q","s":"en","t":"每日單字進度"},{"done":false,"id":"s4g","s":"en","t":"英文閱測 第 89 回"},{"done":false,"id":"s78","s":"ch","t":"國文閱測 第 89 回"}],"2026-12-13":[{"done":false,"id":"v2r","s":"en","t":"每日單字進度"},{"done":false,"id":"s4h","s":"en","t":"英文閱測 第 90 回"},{"done":false,"id":"s79","s":"ch","t":"國文閱測 第 90 回"}],"2026-12-14":[{"done":false,"id":"v2s","s":"en","t":"每日單字進度"},{"done":false,"id":"s4i","s":"en","t":"英文閱測 第 91 回"},{"done":false,"id":"s7a","s":"ch","t":"國文閱測 第 91 回"},{"done":false,"id":"n12","s":"sc","t":"化學複習"}],"2026-12-15":[{"done":false,"id":"v2t","s":"en","t":"每日單字進度"},{"done":false,"id":"s4j","s":"en","t":"英文閱測 第 92 回"},{"done":false,"id":"s7b","s":"ch","t":"國文閱測 第 92 回"},{"done":false,"id":"n13","s":"sc","t":"物理複習"}],"2026-12-16":[{"done":false,"id":"v2u","s":"en","t":"每日單字進度"},{"done":false,"id":"s4k","s":"en","t":"英文閱測 第 93 回"},{"done":false,"id":"s7c","s":"ch","t":"國文閱測 第 93 回"},{"done":false,"id":"dr","s":"ma","t":"數學模卷練習"},{"done":false,"id":"ds","s":"ch","t":"國寫"},{"done":false,"id":"dt","s":"en","t":"英文作文"}],"2026-12-17":[{"done":false,"id":"v2v","s":"en","t":"每日單字進度"},{"done":false,"id":"s4l","s":"en","t":"英文閱測 第 94 回"},{"done":false,"id":"s7d","s":"ch","t":"國文閱測 第 94 回"},{"done":false,"id":"n14","s":"sc","t":"生物複習"}],"2026-12-18":[{"done":false,"id":"v2w","s":"en","t":"每日單字進度"},{"done":false,"id":"s4m","s":"en","t":"英文閱測 第 95 回"},{"done":false,"id":"s7e","s":"ch","t":"國文閱測 第 95 回"},{"done":false,"id":"n15","s":"sc","t":"地科複習"}],"2026-12-19":[{"done":false,"id":"v2x","s":"en","t":"每日單字進度"},{"done":false,"id":"s4n","s":"en","t":"英文閱測 第 96 回"},{"done":false,"id":"s7f","s":"ch","t":"國文閱測 第 96 回"},{"done":false,"id":"m18","s":"en","t":"英文模模考"},{"done":false,"id":"m19","s":"ma","t":"數學模模考"},{"done":false,"id":"m1a","s":"ch","t":"國文模模考"},{"done":false,"id":"m1b","s":"sc","t":"自然模模考"}],"2026-12-20":[{"done":false,"id":"v2y","s":"en","t":"每日單字進度"},{"done":false,"id":"s4o","s":"en","t":"英文閱測 第 97 回"},{"done":false,"id":"s7g","s":"ch","t":"國文閱測 第 97 回"}],"2026-12-21":[{"done":false,"id":"v2z","s":"en","t":"每日單字進度"},{"done":false,"id":"s4p","s":"en","t":"英文閱測 第 98 回"},{"done":false,"id":"s7h","s":"ch","t":"國文閱測 第 98 回"}],"2026-12-22":[{"done":false,"id":"v30","s":"en","t":"每日單字進度"},{"done":false,"id":"s4q","s":"en","t":"英文閱測 第 99 回"},{"done":false,"id":"s7i","s":"ch","t":"國文閱測 第 99 回"}],"2026-12-23":[{"done":false,"id":"v31","s":"en","t":"每日單字進度"},{"done":false,"id":"s4r","s":"en","t":"英文閱測 第 100 回"},{"done":false,"id":"s7j","s":"ch","t":"國文閱測 第 100 回"}],"2026-12-24":[{"done":false,"id":"v32","s":"en","t":"每日單字進度"}],"2026-12-25":[{"done":false,"id":"v33","s":"en","t":"每日單字進度"}],"2026-12-26":[{"done":false,"id":"v34","s":"en","t":"每日單字進度"}],"2026-12-27":[{"done":false,"id":"v35","s":"en","t":"每日單字進度"}],"2026-12-28":[{"done":false,"id":"v36","s":"en","t":"每日單字進度"}],"2026-12-29":[{"done":false,"id":"v37","s":"en","t":"每日單字進度"}],"2026-12-30":[{"done":false,"id":"v38","s":"en","t":"每日單字進度"}],"2026-12-31":[{"done":false,"id":"v39","s":"en","t":"每日單字進度"}]},"weeks":{"2026-08-31":"off"}};
+function loadLocal(){
+  try{
+    var o=JSON.parse(localStorage.getItem(LS)||"{}");
+    if(o.days)state.days=o.days;
+    if(o.weeks)state.weeks=o.weeks;
+    if(o.view)state.view=o.view;
+  }catch(e){}
+  if(!Object.keys(state.days).length){
+    state.days=JSON.parse(JSON.stringify(SEED.days));
+    state.weeks=JSON.parse(JSON.stringify(SEED.weeks));
+  }
+}
+function saveLocal(){
+  try{localStorage.setItem(LS,JSON.stringify({days:state.days,weeks:state.weeks,view:state.view}));}catch(e){}
+}
+function monthOf(dk){return dk.slice(0,7);}
+function daysOfMonth(mk){
+  var out={},k;
+  for(k in state.days)if(state.days.hasOwnProperty(k)&&k.slice(0,7)===mk&&state.days[k].length)out[k]=state.days[k];
+  return out;
+}
+function touch(mk){dirty[mk]=1;saveLocal();if(saveT)clearTimeout(saveT);saveT=setTimeout(flush,450);}
+function flush(){
+  saveT=null;
+  if(!db)return;
+  var pending=dirty;dirty={};
+  Object.keys(pending).forEach(function(mk){
+    var path=mk==="__weeks"?"plan/weeks":"plan/"+mk;
+    var body=mk==="__weeks"?{weeks:state.weeks}:{days:daysOfMonth(mk)};
+    db.doc(path).set(body)["catch"](function(e){
+      setStatus(e&&e.code==="quota_exceeded"?"雲端空間已滿，先刪一些舊項目":"雲端同步失敗，資料仍留在這台裝置");
+    });
+  });
+}
+var statusT=null;
+function setStatus(msg){
+  var el=document.getElementById("_st");
+  if(!el){el=document.createElement("div");el.className="status";el.id="_st";document.body.appendChild(el);}
+  el.textContent=msg;
+  if(statusT)clearTimeout(statusT);
+  statusT=setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},5000);
+}
+
+/* ---------- week type ---------- */
+function hasKind(wk,test){
+  var i,e;
+  for(i=0;i<7;i++){
+    e=EV[key(addDays(D(wk),i))];
+    if(e&&test(e.kind))return true;
+  }
+  return false;
+}
+function derivedType(wk){
+  if(hasKind(wk,function(k){return k!=="mid";}))return "exam";
+  if(hasKind(wk,function(k){return k==="mid";}))return "midterm";
+  // 段考（含期末）的前一週 = 段考複習週
+  if(hasKind(key(addDays(D(wk),7)),function(k){return k==="mid";}))return "review";
+  return "regular";
+}
+function wtypeOfWeek(wk){
+  var v=state.weeks[wk];
+  if(v&&WTM[v])return v;
+  return derivedType(wk);
+}
+function wtypeOf(dk){return wtypeOfWeek(weekKey(dk));}
+function wtypeTag(wk){
+  var t=wtypeOfWeek(wk);
+  return '<span class="wtype t-'+t+'">'+WTM[t]+'</span>';
+}
+function weekEvents(wk){
+  var out=[],i,dk,seen={};
+  for(i=0;i<7;i++){
+    dk=key(addDays(D(wk),i));
+    if(EV[dk]&&!seen[EV[dk].short]){seen[EV[dk].short]=1;out.push(EV[dk]);}
+  }
+  return out;
+}
+
+/* ---------- header ---------- */
+function renderHead(){
+  var left=diff(todayKey,TARGET);
+  document.getElementById("dbig").textContent=left>0?"D-"+left:(left===0?"D-DAY":"＋"+(-left));
+  document.getElementById("pbar").style.width=(TOTAL?Math.max(0,Math.min(100,(TOTAL-left)/TOTAL*100)):0)+"%";
+  var tot=0,dn=0,k,i,a;
+  for(k in state.days)if(state.days.hasOwnProperty(k)){
+    a=state.days[k];
+    for(i=0;i<a.length;i++){tot++;if(a[i].done)dn++;}
+  }
+  var nextEx=null;
+  for(i=0;i<EXAMS.length;i++){
+    if(EXAMS[i].days[EXAMS[i].days.length-1]>=todayKey){nextEx=EXAMS[i];break;}
+  }
+  document.getElementById("meta").innerHTML=
+    '<span>第 <b class="mono">'+weekNo(weekKey(todayKey))+'</b> / '+LASTW+' 週</span>'+
+    '<span>剩 <b class="mono">'+Math.max(0,Math.ceil(left/7))+'</b> 個週</span>'+
+    (nextEx?'<span>下一場 <b>'+nextEx.short+'</b> <b class="mono">'+
+      (diff(todayKey,nextEx.days[0])>0?"D-"+diff(todayKey,nextEx.days[0]):"就是今天")+'</b></span>':"")+
+    '<span>已排 <b class="mono">'+tot+'</b> 項 · 完成 <b class="mono">'+dn+'</b></span>';
+}
+
+function renderExams(){
+  var box=document.getElementById("exams");
+  box.innerHTML="";
+  EXAMS.forEach(function(x){
+    var last=x.days[x.days.length-1], gone=last<todayKey;
+    var n=diff(todayKey,x.days[0]);
+    var b=document.createElement("button");
+    b.className="exch k-"+x.kind+(gone?" past":"");
+    b.title=x.full+"　"+x.days.map(md).join("、")+"　點一下跳到那天";
+    b.innerHTML='<span class="nm">'+x.short+'</span><span class="dt">'+
+      x.days.map(md).join("–")+'</span><span class="dd">'+
+      (gone?"已過":(n>0?"D-"+n:(n===0?"今天":"進行中")))+'</span>';
+    b.onclick=function(){gotoDay(x.days[0]);};
+    box.appendChild(b);
+  });
+}
+
+function renderChips(){
+  var counts={},k,i,a;
+  for(k in state.days)if(state.days.hasOwnProperty(k)){
+    a=state.days[k];
+    for(i=0;i<a.length;i++)counts[a[i].s]=(counts[a[i].s]||0)+1;
+  }
+  var box=document.getElementById("chips");
+  box.innerHTML="";
+  SUBJ.forEach(function(s){
+    var b=document.createElement("button");
+    b.className="chip"+(state.filter&&state.filter!==s.k?" dim":"");
+    b.style.setProperty("--c",s.c);
+    b.setAttribute("aria-pressed",state.filter===s.k?"true":"false");
+    b.title=s.full+"　週時數配比目標 "+s.pct+"%　已排 "+(counts[s.k]||0)+" 項";
+    b.innerHTML='<span class="dot"></span><span>'+s.n+'</span><span class="pct">'+(counts[s.k]||0)+'</span>';
+    b.onclick=function(){state.filter=state.filter===s.k?null:s.k;renderChips();renderBody();};
+    box.appendChild(b);
+  });
+}
+
+/* ---------- body ---------- */
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function itemsOf(dk){return state.days[dk]||[];}
+
+function renderBody(){
+  document.getElementById("main").innerHTML=state.view==="list"?listHTML():gridHTML();
+}
+
+function dayItemsHTML(dk){
+  var arr=itemsOf(dk),out="",i,it,hid;
+  for(i=0;i<arr.length;i++){
+    it=arr[i];
+    hid=state.filter&&it.s!==state.filter;
+    out+='<button class="it'+(it.done?" done":"")+(hid?" hide":"")+'" style="--c:'+SM[it.s].c+
+         '" data-d="'+dk+'" data-i="'+it.id+'" data-act="toggle" title="點一下＝完成／取消">'+
+         '<span class="tick"></span><span class="tag">'+SM[it.s].n+'</span><span class="tx">'+esc(it.t)+'</span></button>';
+  }
+  return out;
+}
+
+function listHTML(){
+  var html="",mi;
+  for(mi=0;mi<MONTHS.length;mi++){
+    var mk=MONTHS[mi][0];
+    var first=mk+"-01", last=key(new Date(+mk.slice(0,4),+mk.slice(5,7),0));
+    var from=first<START?START:first, to=last>END?END:last;
+    if(from>to)continue;
+    html+='<section class="month"><div class="mhead"><h2>'+MONTHS[mi][1]+'</h2>'+
+          '<span class="sub mono">'+md(from)+' – '+md(to)+' · '+(diff(from,to)+1)+' 天</span></div>';
+    var d=D(from),cur=null,open=false;
+    while(key(d)<=to){
+      var dk=key(d), wk=weekKey(dk);
+      if(wk!==cur){
+        if(open)html+="</div>";
+        cur=wk;open=true;
+        var evs=weekEvents(wk).map(function(e){
+          return '<span class="wev k-'+e.kind+'">'+e.short+'</span>';
+        }).join("");
+        html+='<div class="wgroup w-'+wtypeOfWeek(wk)+'"><div class="wbar"><span class="wnum">W'+weekNo(wk)+'</span>'+
+              wtypeTag(wk)+evs+'<span class="span">'+md(wk)+' – '+md(key(addDays(D(wk),6)))+'</span></div>';
+      }
+      var e=EV[dk], pg=isProg(dk);
+      var cls="day"+(col(d)>=5?" we":"")+(dk===todayKey?" tod":"")+(e?" ex k-"+e.kind:"")+(pg?" prog":"");
+      var evrow=e?'<div class="evrow"><span class="nm">'+e.full+'</span>'+
+                 (e.of>1?'<span class="note">第 '+e.part+' / '+e.of+' 天</span>':"")+'</div>':"";
+      html+='<div class="'+cls+'" data-d="'+dk+'"><div class="rail"><span class="dd">'+dk.slice(8)+
+            (dk===todayKey?'<span class="now">今天</span>':"")+'</span><span class="wd">週'+WD[col(d)]+
+            '</span><span class="dc">'+dcLabel(dk)+'</span>'+
+            (pg?'<span class="progtag">段考進度</span>':"")+'</div><div class="dbody">'+evrow+dayItemsHTML(dk)+
+            '<button class="addbtn" data-d="'+dk+'" data-act="open">＋ 排這天</button></div></div>';
+      d=addDays(d,1);
+    }
+    if(open)html+="</div>";
+    html+="</section>";
+  }
+  return html;
+}
+
+function gridHTML(){
+  var html="",mi,w,i,j;
+  for(mi=0;mi<MONTHS.length;mi++){
+    var mk=MONTHS[mi][0];
+    var y=+mk.slice(0,4), mo=+mk.slice(5,7);
+    var first=new Date(y,mo-1,1), last=new Date(y,mo,0);
+    if(key(last)<START||key(first)>END)continue;
+    html+='<section class="month"><div class="mhead"><h2>'+MONTHS[mi][1]+'</h2><span class="sub mono">'+y+'</span></div><div class="grid">';
+    html+='<div class="grow ghead"><div>週次</div>';
+    for(w=0;w<7;w++)html+="<div>"+WD[w]+"</div>";
+    html+="</div>";
+    var d=mondayOf(first);
+    while(d<=last){
+      var wk=key(d);
+      html+='<div class="grow"><div class="grail w-'+wtypeOfWeek(wk)+'"><span class="wnum">W'+weekNo(wk)+'</span>'+wtypeTag(wk)+'</div>';
+      for(i=0;i<7;i++){
+        var cd=addDays(d,i), dk=key(cd);
+        if(cd.getMonth()!==mo-1||!inRange(dk)){html+='<div class="cell out"></div>';continue;}
+        var e=EV[dk], pg=isProg(dk);
+        var cls="cell"+(i>=5?" we":"")+(dk===todayKey?" tod":"")+(e?" ex k-"+e.kind:"")+(pg?" prog":"");
+        var arr=itemsOf(dk),lines="",shown=0,skipped=0,cap=(e||pg)?2:3;
+        for(j=0;j<arr.length;j++){
+          if(state.filter&&arr[j].s!==state.filter)continue;
+          if(shown>=cap){skipped++;continue;}
+          lines+='<span class="ci'+(arr[j].done?" done":"")+'" style="--c:'+SM[arr[j].s].c+'">'+esc(arr[j].t)+'</span>';
+          shown++;
+        }
+        if(skipped)lines+='<span class="more">＋'+skipped+'</span>';
+        html+='<button class="'+cls+'" data-d="'+dk+'" data-act="open"><span class="n">'+cd.getDate()+'</span>'+
+              '<span class="dcs">'+dcLabel(dk)+'</span>'+(e?'<span class="evb">'+e.short+'</span>':"")+
+              (pg?'<span class="progtag">段考進度</span>':"")+lines+'</button>';
+      }
+      html+="</div>";
+      d=addDays(d,7);
+    }
+    html+="</div></section>";
+  }
+  return html;
+}
+
+function gotoDay(dk){
+  var el=document.querySelector('[data-d="'+dk+'"]');
+  if(el)el.scrollIntoView({block:"center",behavior:"smooth"});
+}
+
+/* ---------- editor ---------- */
+var edPick="en";
+var ed=document.getElementById("ed"), scrim=document.getElementById("scrim");
+var edInput=document.getElementById("edInput");
+
+function buildPicker(){
+  var p=document.getElementById("picker");
+  p.innerHTML="";
+  SUBJ.forEach(function(s){
+    var b=document.createElement("button");
+    b.className="pk";b.textContent=s.n;b.style.setProperty("--c",s.c);
+    b.setAttribute("aria-pressed",edPick===s.k?"true":"false");
+    b.title=s.full;
+    b.onclick=function(){edPick=s.k;buildPicker();edInput.focus();};
+    p.appendChild(b);
+  });
+}
+function buildWsel(){
+  var box=document.getElementById("wsel");
+  box.innerHTML='<span class="lb">本週型態</span>';
+  WTYPES.forEach(function(w){
+    var b=document.createElement("button");
+    b.textContent=w[1];
+    b.setAttribute("aria-pressed",state.open&&wtypeOf(state.open)===w[0]?"true":"false");
+    b.onclick=function(){
+      if(!state.open)return;
+      state.weeks[weekKey(state.open)]=w[0];
+      touch("__weeks");buildWsel();renderBody();
+    };
+    box.appendChild(b);
+  });
+}
+function openDay(dk){
+  if(!inRange(dk))return;
+  state.open=dk;
+  var d=D(dk), e=EV[dk];
+  document.getElementById("edDate").innerHTML=(d.getMonth()+1)+" 月 "+d.getDate()+" 日　週"+WD[col(d)]+
+    (e?'<span class="evtag k-'+e.kind+'">'+e.full+(e.of>1?" 第"+e.part+"天":"")+'</span>':"");
+  document.getElementById("edSub").textContent=dcLabel(dk)+"　W"+weekNo(weekKey(dk));
+  ed.classList.add("on");ed.setAttribute("aria-hidden","false");scrim.classList.add("on");
+  buildWsel();buildPicker();renderEdList();
+  edInput.value="";
+  setTimeout(function(){edInput.focus();},60);
+}
+function closeEd(){
+  state.open=null;
+  ed.classList.remove("on");ed.setAttribute("aria-hidden","true");scrim.classList.remove("on");
+}
+function renderEdList(){
+  var box=document.getElementById("edList");
+  box.innerHTML="";
+  if(!state.open)return;
+  var arr=itemsOf(state.open);
+  if(!arr.length){
+    box.innerHTML='<div class="empty-note">還沒排。<br>粗一點沒關係——一天兩三件主線就夠，剩下的當天再說。</div>';
+    return;
+  }
+  arr.forEach(function(it){
+    var r=document.createElement("div");
+    r.className="row"+(it.done?" done":"");
+    r.style.setProperty("--c",SM[it.s].c);
+    r.innerHTML='<button class="tick" title="完成"></button><span class="tag">'+SM[it.s].n+
+                '</span><span class="tx">'+esc(it.t)+'</span><button class="del" title="刪除">✕</button>';
+    r.querySelector(".tick").onclick=function(){
+      it.done=!it.done;touch(monthOf(state.open));renderEdList();renderBody();renderHead();
+    };
+    r.querySelector(".del").onclick=function(){
+      var dk=state.open;
+      state.days[dk]=(state.days[dk]||[]).filter(function(x){return x.id!==it.id;});
+      if(!state.days[dk].length)delete state.days[dk];
+      touch(monthOf(dk));renderEdList();renderBody();renderHead();renderChips();
+    };
+    box.appendChild(r);
+  });
+}
+function addItem(){
+  var t=edInput.value.trim();
+  if(!t||!state.open)return;
+  if(!state.days[state.open])state.days[state.open]=[];
+  state.days[state.open].push({
+    id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    t:t,s:edPick,done:false
+  });
+  edInput.value="";
+  touch(monthOf(state.open));
+  renderEdList();renderBody();renderHead();renderChips();
+  edInput.focus();
+}
+function shiftDay(n){
+  if(!state.open)return;
+  var nk=key(addDays(D(state.open),n));
+  if(inRange(nk))openDay(nk);
+}
+
+/* ---------- events ---------- */
+document.getElementById("main").addEventListener("click",function(e){
+  var el=e.target.closest("[data-act]");
+  if(!el)return;
+  var dk=el.getAttribute("data-d");
+  if(el.getAttribute("data-act")==="open"){openDay(dk);return;}
+  var id=el.getAttribute("data-i"), arr=state.days[dk]||[],i;
+  for(i=0;i<arr.length;i++)if(arr[i].id===id){arr[i].done=!arr[i].done;break;}
+  touch(monthOf(dk));renderBody();renderHead();
+});
+document.getElementById("edAdd").onclick=addItem;
+edInput.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();addItem();}});
+document.getElementById("prevD").onclick=function(){shiftDay(-1);};
+document.getElementById("nextD").onclick=function(){shiftDay(1);};
+document.getElementById("edClose").onclick=closeEd;
+scrim.onclick=closeEd;
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&state.open)closeEd();});
+document.getElementById("vlist").onclick=function(){setView("list");};
+document.getElementById("vgrid").onclick=function(){setView("grid");};
+function setView(v){
+  state.view=v;saveLocal();
+  document.getElementById("vlist").setAttribute("aria-pressed",v==="list"?"true":"false");
+  document.getElementById("vgrid").setAttribute("aria-pressed",v==="grid"?"true":"false");
+  renderBody();
+}
+
+/* ---------- boot ---------- */
+loadLocal();
+renderHead();renderExams();renderChips();setView(state.view);
+
+if(window.claude&&typeof window.claude.use==="function"){
+  window.claude.use("db").then(function(x){
+    if(!x)return;
+    db=x;
+    MONTHS.forEach(function(m){
+      var mk=m[0];
+      db.doc("plan/"+mk).onSnapshot(function(s){
+        if(!s.exists){
+          if(Object.keys(daysOfMonth(mk)).length)touch(mk);
+          return;
+        }
+        var incoming=(s.data()||{}).days||{},k;
+        for(k in state.days)if(state.days.hasOwnProperty(k)&&k.slice(0,7)===mk)delete state.days[k];
+        for(k in incoming)if(incoming.hasOwnProperty(k))state.days[k]=JSON.parse(JSON.stringify(incoming[k]));
+        saveLocal();renderHead();renderChips();renderBody();
+        if(state.open&&monthOf(state.open)===mk)renderEdList();
+      },function(){setStatus("雲端同步中斷，改用本機儲存");});
+    });
+    db.doc("plan/weeks").onSnapshot(function(s){
+      if(!s.exists){if(Object.keys(state.weeks).length)touch("__weeks");return;}
+      state.weeks=(s.data()||{}).weeks||{};
+      saveLocal();renderBody();
+      if(state.open)buildWsel();
+    },function(){});
+  })["catch"](function(){});
+}
+})();
+</script>
+
+</body>
+</html>
