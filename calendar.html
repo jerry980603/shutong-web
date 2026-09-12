@@ -114,8 +114,14 @@ h1{font-family:"Noto Serif TC",serif;font-weight:700;font-size:19px;margin:0;let
 
 .bar{margin:10px 0 8px;height:5px;background:var(--weekend);border-radius:99px;overflow:hidden}
 .bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
-.meta{display:flex;gap:13px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-3);margin-bottom:8px}
+.meta{display:flex;gap:13px;flex-wrap:wrap;align-items:center;font-size:11.5px;color:var(--ink-3);margin-bottom:8px}
 .meta b{color:var(--ink-2);font-weight:600}
+.meta .latebtn{font-size:11.5px;color:var(--surface);background:var(--accent);
+  border-radius:99px;padding:2px 10px;font-weight:500}
+.meta .latebtn:hover{filter:brightness(1.1)}
+.todaybtn{flex:none;padding:4px 11px;font-size:12px;color:var(--ink-2);
+  border:1px solid var(--line);border-radius:7px}
+.todaybtn:hover{border-color:var(--accent);color:var(--accent-ink)}
 
 .exams{display:flex;gap:5px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin}
 .exch{
@@ -169,6 +175,15 @@ main{max-width:1080px;margin:0 auto;padding:18px 16px 96px}
 .day.we{background:var(--weekend)}
 .day.ex{background:var(--ev-w);box-shadow:inset 4px 0 0 var(--ev)}
 .day.tod .rail .dd{color:var(--accent-ink)}
+/* 過去、已結清的日子退到背景；還有沒做完的則反過來跳出來 */
+.day.past{opacity:.5}
+.day.late{opacity:1;background:var(--accent-wash);box-shadow:inset 4px 0 0 var(--accent)}
+.it.late .tick{border-color:var(--accent);background:var(--accent-wash)}
+.it.late .tag{color:var(--accent-ink)}
+.it.late .tx{color:var(--ink);font-weight:500}
+.latetag{display:inline-block;font-size:9.5px;font-weight:700;color:var(--surface);
+  background:var(--accent);border-radius:3px;padding:0 4px;margin-top:2px;
+  line-height:1.6;white-space:nowrap;letter-spacing:.02em}
 .day.prog{outline:2px dashed var(--mid);outline-offset:-3px;border-radius:7px}
 .cell.prog{outline:2px dashed var(--mid);outline-offset:-2px}
 .progtag{display:inline-block;font-size:9.5px;font-weight:700;color:var(--mid);
@@ -210,6 +225,10 @@ main{max-width:1080px;margin:0 auto;padding:18px 16px 96px}
 .cell.we{background:var(--weekend)}
 .cell.ex{background:var(--ev-w)}
 .cell.out{background:repeating-linear-gradient(135deg,transparent 0 5px,var(--line) 5px 6px);opacity:.4;cursor:default}
+.cell.past{opacity:.45}
+.cell.late{opacity:1;background:var(--accent-wash);box-shadow:inset 0 0 0 2px var(--accent)}
+.cell .lateN{font-size:9.5px;font-weight:700;color:var(--surface);background:var(--accent);
+  border-radius:3px;padding:0 4px;line-height:1.6;align-self:flex-start;margin:1px 0}
 .cell.tod{box-shadow:inset 0 0 0 2px var(--accent)}
 .cell .n{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;line-height:1.2}
 .cell.tod .n{color:var(--accent-ink)}
@@ -303,6 +322,7 @@ footer .info{font-size:11px;color:var(--ink-3);margin-left:auto;text-align:right
     <div class="exams" id="exams"></div>
     <div class="hbot">
       <div class="chips" id="chips"></div>
+      <button class="todaybtn" id="btnToday">回到今天</button>
       <div class="views">
         <button id="vlist" aria-pressed="true">清單</button>
         <button id="vgrid" aria-pressed="false">月曆</button>
@@ -494,6 +514,22 @@ function weekEvents(wk){
   return out;
 }
 
+/* ---------- 逾期：今天以前還沒打勾的 ---------- */
+function lateOn(dk){
+  if(dk>=todayKey)return 0;
+  var a=state.days[dk]||[],c=0,i;
+  for(i=0;i<a.length;i++)if(!a[i].done)c++;
+  return c;
+}
+function overdue(){
+  var n=0,first=null,dk;
+  for(dk in state.days)if(state.days.hasOwnProperty(dk)&&dk<todayKey){
+    var c=lateOn(dk);
+    if(c){n+=c;if(!first||dk<first)first=dk;}
+  }
+  return {n:n,first:first};
+}
+
 /* ---------- header ---------- */
 function renderHead(){
   var left=diff(todayKey,TARGET);
@@ -508,12 +544,16 @@ function renderHead(){
   for(i=0;i<EXAMS.length;i++){
     if(EXAMS[i].days[EXAMS[i].days.length-1]>=todayKey){nextEx=EXAMS[i];break;}
   }
+  var od=overdue();
   document.getElementById("meta").innerHTML=
     '<span>第 <b class="mono">'+weekNo(weekKey(todayKey))+'</b> / '+LASTW+' 週</span>'+
     '<span>剩 <b class="mono">'+Math.max(0,Math.ceil(left/7))+'</b> 個週</span>'+
     (nextEx?'<span>下一場 <b>'+nextEx.short+'</b> <b class="mono">'+
       (diff(todayKey,nextEx.days[0])>0?"D-"+diff(todayKey,nextEx.days[0]):"就是今天")+'</b></span>':"")+
-    '<span>已排 <b class="mono">'+tot+'</b> 項 · 完成 <b class="mono">'+dn+'</b></span>';
+    '<span>已排 <b class="mono">'+tot+'</b> 項 · 完成 <b class="mono">'+dn+'</b></span>'+
+    (od.n?'<button class="latebtn" id="btnLate">補做 <b class="mono">'+od.n+'</b> 項</button>':"");
+  var bl=document.getElementById("btnLate");
+  if(bl)bl.onclick=function(){gotoDay(od.first,true);};
 }
 
 function renderExams(){
@@ -558,15 +598,19 @@ function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp
 function itemsOf(dk){return state.days[dk]||[];}
 
 function renderBody(){
+  // 重畫整份清單會讓捲動位置跳掉（打勾、篩選、雲端同步都會觸發），先記下再放回去
+  var y=window.pageYOffset||document.documentElement.scrollTop||0;
   document.getElementById("main").innerHTML=state.view==="list"?listHTML():gridHTML();
+  if(y)window.scrollTo(0,y);
 }
 
 function dayItemsHTML(dk){
-  var arr=itemsOf(dk),out="",i,it,hid;
+  var arr=itemsOf(dk),out="",i,it,hid,isPast=dk<todayKey;
   for(i=0;i<arr.length;i++){
     it=arr[i];
     hid=state.filter&&it.s!==state.filter;
-    out+='<button class="it'+(it.done?" done":"")+(hid?" hide":"")+'" style="--c:'+SM[it.s].c+
+    out+='<button class="it'+(it.done?" done":"")+(hid?" hide":"")+
+         (isPast&&!it.done?" late":"")+'" style="--c:'+SM[it.s].c+
          '" data-d="'+dk+'" data-i="'+it.id+'" data-act="toggle" title="點一下＝完成／取消">'+
          '<span class="tick"></span><span class="tag">'+SM[it.s].n+'</span><span class="tx">'+esc(it.t)+'</span></button>';
   }
@@ -594,13 +638,15 @@ function listHTML(){
         html+='<div class="wgroup w-'+wtypeOfWeek(wk)+'"><div class="wbar"><span class="wnum">W'+weekNo(wk)+'</span>'+
               wtypeTag(wk)+evs+'<span class="span">'+md(wk)+' – '+md(key(addDays(D(wk),6)))+'</span></div>';
       }
-      var e=EV[dk], pg=isProg(dk);
-      var cls="day"+(col(d)>=5?" we":"")+(dk===todayKey?" tod":"")+(e?" ex k-"+e.kind:"")+(pg?" prog":"");
+      var e=EV[dk], pg=isProg(dk), lt=lateOn(dk);
+      var cls="day"+(col(d)>=5?" we":"")+(dk===todayKey?" tod":"")+(e?" ex k-"+e.kind:"")+(pg?" prog":"")+
+              (dk<todayKey?(lt?" late":" past"):"");
       var evrow=e?'<div class="evrow"><span class="nm">'+e.full+'</span>'+
                  (e.of>1?'<span class="note">第 '+e.part+' / '+e.of+' 天</span>':"")+'</div>':"";
       html+='<div class="'+cls+'" data-d="'+dk+'"><div class="rail"><span class="dd">'+dk.slice(8)+
             (dk===todayKey?'<span class="now">今天</span>':"")+'</span><span class="wd">週'+WD[col(d)]+
             '</span><span class="dc">'+dcLabel(dk)+'</span>'+
+            (lt?'<span class="latetag">未完成 '+lt+'</span>':"")+
             (pg?'<span class="progtag">段考進度</span>':"")+'</div><div class="dbody">'+evrow+dayItemsHTML(dk)+
             '<button class="addbtn" data-d="'+dk+'" data-act="open">＋ 排這天</button></div></div>';
       d=addDays(d,1);
@@ -629,9 +675,10 @@ function gridHTML(){
       for(i=0;i<7;i++){
         var cd=addDays(d,i), dk=key(cd);
         if(cd.getMonth()!==mo-1||!inRange(dk)){html+='<div class="cell out"></div>';continue;}
-        var e=EV[dk], pg=isProg(dk);
-        var cls="cell"+(i>=5?" we":"")+(dk===todayKey?" tod":"")+(e?" ex k-"+e.kind:"")+(pg?" prog":"");
-        var arr=itemsOf(dk),lines="",shown=0,skipped=0,cap=(e||pg)?2:3;
+        var e=EV[dk], pg=isProg(dk), lt=lateOn(dk);
+        var cls="cell"+(i>=5?" we":"")+(dk===todayKey?" tod":"")+(e?" ex k-"+e.kind:"")+(pg?" prog":"")+
+                (dk<todayKey?(lt?" late":" past"):"");
+        var arr=itemsOf(dk),lines="",shown=0,skipped=0,cap=(e||pg||lt)?2:3;
         for(j=0;j<arr.length;j++){
           if(state.filter&&arr[j].s!==state.filter)continue;
           if(shown>=cap){skipped++;continue;}
@@ -641,6 +688,7 @@ function gridHTML(){
         if(skipped)lines+='<span class="more">＋'+skipped+'</span>';
         html+='<button class="'+cls+'" data-d="'+dk+'" data-act="open"><span class="n">'+cd.getDate()+'</span>'+
               '<span class="dcs">'+dcLabel(dk)+'</span>'+(e?'<span class="evb">'+e.short+'</span>':"")+
+              (lt?'<span class="lateN">未完成 '+lt+'</span>':"")+
               (pg?'<span class="progtag">段考進度</span>':"")+lines+'</button>';
       }
       html+="</div>";
@@ -651,9 +699,20 @@ function gridHTML(){
   return html;
 }
 
-function gotoDay(dk){
+function gotoDay(dk,smooth){
   var el=document.querySelector('[data-d="'+dk+'"]');
-  if(el)el.scrollIntoView({block:"center",behavior:"smooth"});
+  if(!el)return false;
+  try{el.scrollIntoView({block:"center",behavior:smooth?"smooth":"auto"});}
+  catch(e){el.scrollIntoView();}
+  return true;
+}
+// 開啟時把今天捲到畫面中間。月曆檢視的今天在格子裡，清單檢視在日列上，兩邊都有 data-d。
+function centerToday(smooth){
+  if(gotoDay(todayKey,smooth))return;
+  // 今天不在範圍內（計畫還沒開始或已結束）就靠最近的一天
+  var keys=Object.keys(state.days).sort(),i,best=null;
+  for(i=0;i<keys.length;i++){ if(keys[i]<=todayKey)best=keys[i]; else if(!best){best=keys[i];break;} }
+  if(best)gotoDay(best,smooth);
 }
 
 /* ---------- editor ---------- */
@@ -774,7 +833,9 @@ function setView(v){
   document.getElementById("vlist").setAttribute("aria-pressed",v==="list"?"true":"false");
   document.getElementById("vgrid").setAttribute("aria-pressed",v==="grid"?"true":"false");
   renderBody();
+  centerToday(false);   // 換檢視之後位置會亂掉，重新對準今天
 }
+document.getElementById("btnToday").onclick=function(){centerToday(true);};
 
 /* ---------- 離線版：內建計畫、版本合併、匯出匯入 ----------
    只有烤了 SEED 的獨立網頁會走這段；artifact 版本沒有 SEED，整段不啟用。 */
@@ -881,10 +942,15 @@ function initTools(){
 }
 
 /* ---------- boot ---------- */
+try{if("scrollRestoration" in history)history.scrollRestoration="manual";}catch(e){}
 loadLocal();
 applySeed();
 renderHead();renderExams();renderChips();setView(state.view);
 initTools();
+// 字型載入完、版面高度才定案，所以再對一次
+centerToday(false);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){centerToday(false);});
+window.addEventListener("load",function(){centerToday(false);});
 
 if(window.claude&&typeof window.claude.use==="function"){
   window.claude.use("db").then(function(x){
