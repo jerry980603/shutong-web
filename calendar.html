@@ -815,11 +815,22 @@ function gotoDay(dk,smooth){
 // 開啟時把今天捲到畫面中間。月曆檢視的今天在格子裡，清單檢視在日列上，兩邊都有 data-d。
 function centerToday(smooth){
   if(state.view==="late")return;       // 未完成檢視從頂端看起，不捲
-  if(gotoDay(todayKey,smooth))return;
-  // 今天不在範圍內（計畫還沒開始或已結束）就靠最近的一天
-  var keys=Object.keys(state.days).sort(),i,best=null;
-  for(i=0;i<keys.length;i++){ if(keys[i]<=todayKey)best=keys[i]; else if(!best){best=keys[i];break;} }
-  if(best)gotoDay(best,smooth);
+  if(!gotoDay(todayKey,smooth)){
+    // 今天不在範圍內（計畫還沒開始或已結束）就靠最近的一天
+    var keys=Object.keys(state.days).sort(),i,best=null;
+    for(i=0;i<keys.length;i++){ if(keys[i]<=todayKey)best=keys[i]; else if(!best){best=keys[i];break;} }
+    if(best)gotoDay(best,smooth);
+  }
+  updateFab();
+  // 平滑捲動要一點時間才到位；有些情況（App 剛從背景切回來）動畫不會跑，所以時間到了還沒到位就直接對準
+  if(smooth)setTimeout(function(){
+    var el=document.querySelector('#main [data-d="'+todayKey+'"]');
+    if(el){
+      var r=el.getBoundingClientRect(),vh=window.innerHeight||0;
+      if(vh&&Math.abs(r.top+r.height/2-vh/2)>vh*0.25)gotoDay(todayKey,false);
+    }
+    updateFab();
+  },650);
 }
 
 /* ---------- editor ---------- */
@@ -952,12 +963,17 @@ function setView(v){
 }
 document.getElementById("fab").onclick=function(){centerToday(true);};
 document.getElementById("fabDate").textContent=md(todayKey)+"（"+WD[col(D(todayKey))]+"）";
-var fabTick=false;
+// 捲動時更新浮動鈕。不靠 requestAnimationFrame（背景或剛切回來時會暫停），改用時間節流＋收尾補一次
+var fabLast=0,fabTrail=null;
 window.addEventListener("scroll",function(){
-  if(fabTick)return;fabTick=true;
-  requestAnimationFrame(function(){fabTick=false;updateFab();});
+  var now=Date.now();
+  if(now-fabLast>80){fabLast=now;updateFab();}
+  clearTimeout(fabTrail);
+  fabTrail=setTimeout(updateFab,120);
 },{passive:true});
 window.addEventListener("resize",updateFab);
+document.addEventListener("visibilitychange",function(){if(!document.hidden)updateFab();});
+window.addEventListener("pageshow",updateFab);
 
 /* ---------- 離線版：內建計畫、版本合併、匯出匯入 ----------
    只有烤了 SEED 的獨立網頁會走這段；artifact 版本沒有 SEED，整段不啟用。 */
