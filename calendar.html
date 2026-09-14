@@ -646,12 +646,12 @@ function renderBody(){
 }
 
 /* ---------- 未完成檢視 ----------
-   同一份 state，只是換個角度看：今天以前沒打勾的 ＋ 今天的。
+   同一份 state，只是換個角度看：今天以前還沒打勾的，由舊到新。
    在這裡打勾的項目先留在畫面上（劃掉），免得手滑點錯找不回來；離開這個檢視再收掉。 */
 var justDone={};
 function lateHTML(){
-  var keys=Object.keys(state.days).filter(function(k){return k<=todayKey;}).sort();
-  var groups=[],lateN=0,todayN=0,i,j;
+  var keys=Object.keys(state.days).filter(function(k){return k<todayKey;}).sort();
+  var groups=[],lateN=0,i,j;
   for(i=0;i<keys.length;i++){
     var dk=keys[i],arr=state.days[dk]||[],rows=[];
     for(j=0;j<arr.length;j++){
@@ -659,7 +659,7 @@ function lateHTML(){
       if(state.filter&&it.s!==state.filter)continue;
       if(!it.done||justDone[it.id]){
         rows.push(it);
-        if(!it.done){ if(dk<todayKey)lateN++; else todayN++; }
+        if(!it.done)lateN++;
       }
     }
     if(rows.length)groups.push({dk:dk,rows:rows});
@@ -670,37 +670,27 @@ function lateHTML(){
            (state.filter?'<br>（目前只看「'+SM[state.filter].full+'」，取消篩選看全部）':'')+'</div>';
   }
 
-  var html='<div class="odsum"><span class="big">'+(lateN+todayN)+'</span>'+
+  var days=groups.filter(function(g){return g.rows.some(function(x){return !x.done;});}).length;
+  var html='<div class="odsum"><span class="big">'+lateN+'</span>'+
            '<span class="lab">項還沒做'+(state.filter?'（只看'+SM[state.filter].full+'）':'')+'</span>'+
-           '<span class="split">逾期 <b>'+lateN+'</b>　今天 <b>'+todayN+'</b></span></div>';
+           '<span class="split">分散在 <b>'+days+'</b> 天　由舊到新</span></div>';
 
-  var lateGroups=groups.filter(function(g){return g.dk<todayKey;});
-  var todayGroup=groups.filter(function(g){return g.dk===todayKey;})[0];
-
-  function groupHTML(g){
-    var d=D(g.dk),ago=diff(g.dk,todayKey),isLate=g.dk<todayKey;
+  for(i=0;i<groups.length;i++){
+    var g=groups[i],d=D(g.dk),ago=diff(g.dk,todayKey);
     var pending=g.rows.filter(function(x){return !x.done;}).length;
-    var h='<div class="odgroup'+(isLate?' late':'')+'">'+
+    html+='<div class="odgroup late">'+
       '<button class="odhead" data-d="'+g.dk+'" data-act="open">'+
         '<span class="dt">'+md(g.dk)+'</span><span class="wd">週'+WD[col(d)]+'</span>'+
-        (isLate?'<span class="ago">'+ago+' 天前</span>':'<span class="ago today">今天</span>')+
+        '<span class="ago">'+(ago===1?'昨天':ago+' 天前')+'</span>'+
         '<span class="open">'+pending+' 項 · 開這天 ›</span>'+
       '</button><div class="odbody">';
-    for(var k=0;k<g.rows.length;k++){
-      var it=g.rows[k];
-      h+='<button class="it'+(it.done?' done':(isLate?' late':''))+'" style="--c:'+SM[it.s].c+
-         '" data-d="'+g.dk+'" data-i="'+it.id+'" data-act="toggle" title="點一下＝完成／取消">'+
-         '<span class="tick"></span><span class="tag">'+SM[it.s].n+'</span><span class="tx">'+esc(it.t)+'</span></button>';
+    for(j=0;j<g.rows.length;j++){
+      var r=g.rows[j];
+      html+='<button class="it'+(r.done?' done':' late')+'" style="--c:'+SM[r.s].c+
+            '" data-d="'+g.dk+'" data-i="'+r.id+'" data-act="toggle" title="點一下＝完成／取消">'+
+            '<span class="tick"></span><span class="tag">'+SM[r.s].n+'</span><span class="tx">'+esc(r.t)+'</span></button>';
     }
-    return h+'</div></div>';
-  }
-
-  if(todayGroup){
-    html+='<div class="odsec">今天<span class="n">'+todayN+' 項</span></div>'+groupHTML(todayGroup);
-  }
-  if(lateGroups.length){
-    html+='<div class="odsec">逾期<span class="n">'+lateN+' 項 · 由舊到新</span></div>';
-    for(i=0;i<lateGroups.length;i++)html+=groupHTML(lateGroups[i]);
+    html+='</div></div>';
   }
   return html;
 }
