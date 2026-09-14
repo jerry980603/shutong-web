@@ -119,9 +119,44 @@ h1{font-family:"Noto Serif TC",serif;font-weight:700;font-size:19px;margin:0;let
 .meta .latebtn{font-size:11.5px;color:var(--surface);background:var(--accent);
   border-radius:99px;padding:2px 10px;font-weight:500}
 .meta .latebtn:hover{filter:brightness(1.1)}
-.todaybtn{flex:none;padding:4px 11px;font-size:12px;color:var(--ink-2);
-  border:1px solid var(--line);border-radius:7px}
-.todaybtn:hover{border-color:var(--accent);color:var(--accent-ink)}
+.views .cnt{display:inline-block;min-width:1.5em;margin-left:4px;padding:0 5px;border-radius:99px;
+  font-size:10.5px;font-weight:700;line-height:1.55;background:var(--accent);color:var(--surface);
+  font-family:"IBM Plex Mono",monospace}
+.views button[aria-pressed="true"] .cnt{background:var(--surface);color:var(--ink)}
+
+/* 跳到今天：今天不在畫面上時才浮出來 */
+.fab{position:fixed;right:16px;bottom:18px;z-index:35;display:flex;align-items:center;gap:6px;
+  padding:9px 14px 9px 12px;border-radius:99px;background:var(--ink);color:var(--surface);
+  font-size:13px;font-weight:500;box-shadow:var(--shadow);
+  transform:translateY(0);opacity:1;transition:transform .18s ease,opacity .18s ease}
+.fab .d{font-family:"IBM Plex Mono",monospace;font-size:12px;opacity:.75}
+.fab .arrow{font-size:14px;line-height:1}
+.fab.off{transform:translateY(12px);opacity:0;pointer-events:none}
+@media(prefers-reduced-motion:reduce){.fab{transition:none}}
+
+/* 未完成檢視 */
+.odsum{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin:0 0 14px;padding:12px 14px;
+  background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.odsum .big{font-family:"IBM Plex Mono",monospace;font-size:26px;font-weight:600;color:var(--accent-ink);line-height:1}
+.odsum .lab{font-size:12.5px;color:var(--ink-2)}
+.odsum .split{margin-left:auto;font-size:11.5px;color:var(--ink-3)}
+.odsum .split b{color:var(--ink-2);font-family:"IBM Plex Mono",monospace}
+.odsec{font-family:"Noto Serif TC",serif;font-size:14px;font-weight:600;margin:18px 0 8px;
+  display:flex;align-items:baseline;gap:8px}
+.odsec .n{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-3);font-weight:500}
+.odgroup{margin-bottom:8px;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.odgroup.late{box-shadow:inset 4px 0 0 var(--accent)}
+.odhead{display:flex;align-items:baseline;gap:8px;width:100%;text-align:left;
+  padding:7px 12px 7px 14px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.odhead:hover .open{color:var(--accent-ink)}
+.odhead .dt{font-family:"IBM Plex Mono",monospace;font-size:13.5px;font-weight:600}
+.odhead .wd{font-size:11.5px;color:var(--ink-3)}
+.odhead .ago{font-size:11px;font-weight:700;color:var(--accent-ink)}
+.odhead .ago.today{color:var(--surface);background:var(--accent);border-radius:3px;padding:0 5px}
+.odhead .open{margin-left:auto;font-size:11px;color:var(--ink-3)}
+.odbody{padding:6px 12px 8px 14px;display:flex;flex-direction:column;gap:4px}
+.odempty{padding:40px 16px;text-align:center;color:var(--ink-3);font-size:13px;line-height:1.8}
+.odempty b{display:block;font-family:"Noto Serif TC",serif;font-size:18px;color:var(--ink);margin-bottom:4px}
 
 .exams{display:flex;gap:5px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin}
 .exch{
@@ -322,16 +357,18 @@ footer .info{font-size:11px;color:var(--ink-3);margin-left:auto;text-align:right
     <div class="exams" id="exams"></div>
     <div class="hbot">
       <div class="chips" id="chips"></div>
-      <button class="todaybtn" id="btnToday">回到今天</button>
       <div class="views">
         <button id="vlist" aria-pressed="true">清單</button>
         <button id="vgrid" aria-pressed="false">月曆</button>
+        <button id="vlate" aria-pressed="false">未完成<span class="cnt" id="lateCnt" hidden></span></button>
       </div>
     </div>
   </div>
 </header>
 
 <main id="main"></main>
+
+<button class="fab off" id="fab" aria-label="跳到今天"><span class="arrow" id="fabArrow">↓</span>跳到今天<span class="d" id="fabDate"></span></button>
 
 <footer id="tools" hidden>
   <button id="btnExp">匯出進度</button>
@@ -553,7 +590,9 @@ function renderHead(){
     '<span>已排 <b class="mono">'+tot+'</b> 項 · 完成 <b class="mono">'+dn+'</b></span>'+
     (od.n?'<button class="latebtn" id="btnLate">補做 <b class="mono">'+od.n+'</b> 項</button>':"");
   var bl=document.getElementById("btnLate");
-  if(bl)bl.onclick=function(){gotoDay(od.first,true);};
+  if(bl)bl.onclick=function(){setView("late");window.scrollTo(0,0);};
+  var lc=document.getElementById("lateCnt");
+  if(lc){lc.textContent=od.n;lc.hidden=!od.n;}
 }
 
 function renderExams(){
@@ -600,8 +639,85 @@ function itemsOf(dk){return state.days[dk]||[];}
 function renderBody(){
   // 重畫整份清單會讓捲動位置跳掉（打勾、篩選、雲端同步都會觸發），先記下再放回去
   var y=window.pageYOffset||document.documentElement.scrollTop||0;
-  document.getElementById("main").innerHTML=state.view==="list"?listHTML():gridHTML();
+  document.getElementById("main").innerHTML=
+    state.view==="late"?lateHTML():state.view==="grid"?gridHTML():listHTML();
   if(y)window.scrollTo(0,y);
+  updateFab();
+}
+
+/* ---------- 未完成檢視 ----------
+   同一份 state，只是換個角度看：今天以前沒打勾的 ＋ 今天的。
+   在這裡打勾的項目先留在畫面上（劃掉），免得手滑點錯找不回來；離開這個檢視再收掉。 */
+var justDone={};
+function lateHTML(){
+  var keys=Object.keys(state.days).filter(function(k){return k<=todayKey;}).sort();
+  var groups=[],lateN=0,todayN=0,i,j;
+  for(i=0;i<keys.length;i++){
+    var dk=keys[i],arr=state.days[dk]||[],rows=[];
+    for(j=0;j<arr.length;j++){
+      var it=arr[j];
+      if(state.filter&&it.s!==state.filter)continue;
+      if(!it.done||justDone[it.id]){
+        rows.push(it);
+        if(!it.done){ if(dk<todayKey)lateN++; else todayN++; }
+      }
+    }
+    if(rows.length)groups.push({dk:dk,rows:rows});
+  }
+
+  if(!groups.length){
+    return '<div class="odempty"><b>全部清空了</b>今天以前的項目都打勾了。'+
+           (state.filter?'<br>（目前只看「'+SM[state.filter].full+'」，取消篩選看全部）':'')+'</div>';
+  }
+
+  var html='<div class="odsum"><span class="big">'+(lateN+todayN)+'</span>'+
+           '<span class="lab">項還沒做'+(state.filter?'（只看'+SM[state.filter].full+'）':'')+'</span>'+
+           '<span class="split">逾期 <b>'+lateN+'</b>　今天 <b>'+todayN+'</b></span></div>';
+
+  var lateGroups=groups.filter(function(g){return g.dk<todayKey;});
+  var todayGroup=groups.filter(function(g){return g.dk===todayKey;})[0];
+
+  function groupHTML(g){
+    var d=D(g.dk),ago=diff(g.dk,todayKey),isLate=g.dk<todayKey;
+    var pending=g.rows.filter(function(x){return !x.done;}).length;
+    var h='<div class="odgroup'+(isLate?' late':'')+'">'+
+      '<button class="odhead" data-d="'+g.dk+'" data-act="open">'+
+        '<span class="dt">'+md(g.dk)+'</span><span class="wd">週'+WD[col(d)]+'</span>'+
+        (isLate?'<span class="ago">'+ago+' 天前</span>':'<span class="ago today">今天</span>')+
+        '<span class="open">'+pending+' 項 · 開這天 ›</span>'+
+      '</button><div class="odbody">';
+    for(var k=0;k<g.rows.length;k++){
+      var it=g.rows[k];
+      h+='<button class="it'+(it.done?' done':(isLate?' late':''))+'" style="--c:'+SM[it.s].c+
+         '" data-d="'+g.dk+'" data-i="'+it.id+'" data-act="toggle" title="點一下＝完成／取消">'+
+         '<span class="tick"></span><span class="tag">'+SM[it.s].n+'</span><span class="tx">'+esc(it.t)+'</span></button>';
+    }
+    return h+'</div></div>';
+  }
+
+  if(todayGroup){
+    html+='<div class="odsec">今天<span class="n">'+todayN+' 項</span></div>'+groupHTML(todayGroup);
+  }
+  if(lateGroups.length){
+    html+='<div class="odsec">逾期<span class="n">'+lateN+' 項 · 由舊到新</span></div>';
+    for(i=0;i<lateGroups.length;i++)html+=groupHTML(lateGroups[i]);
+  }
+  return html;
+}
+
+/* ---------- 跳到今天（浮動按鈕） ---------- */
+function updateFab(){
+  var fab=document.getElementById("fab");
+  if(!fab)return;
+  if(state.view==="late"){fab.classList.add("off");return;}
+  var el=document.querySelector('#main [data-d="'+todayKey+'"]');
+  if(!el){fab.classList.add("off");return;}
+  var r=el.getBoundingClientRect(),vh=window.innerHeight||document.documentElement.clientHeight;
+  var head=document.querySelector("header");
+  var top=head?head.getBoundingClientRect().bottom:0;
+  var visible=r.bottom>top+20&&r.top<vh-20;
+  fab.classList.toggle("off",visible);
+  document.getElementById("fabArrow").textContent=r.top<top?"↑":"↓";
 }
 
 function dayItemsHTML(dk){
@@ -708,6 +824,7 @@ function gotoDay(dk,smooth){
 }
 // 開啟時把今天捲到畫面中間。月曆檢視的今天在格子裡，清單檢視在日列上，兩邊都有 data-d。
 function centerToday(smooth){
+  if(state.view==="late")return;       // 未完成檢視從頂端看起，不捲
   if(gotoDay(todayKey,smooth))return;
   // 今天不在範圍內（計畫還沒開始或已結束）就靠最近的一天
   var keys=Object.keys(state.days).sort(),i,best=null;
@@ -816,7 +933,11 @@ document.getElementById("main").addEventListener("click",function(e){
   var dk=el.getAttribute("data-d");
   if(el.getAttribute("data-act")==="open"){openDay(dk);return;}
   var id=el.getAttribute("data-i"), arr=state.days[dk]||[],i;
-  for(i=0;i<arr.length;i++)if(arr[i].id===id){arr[i].done=!arr[i].done;break;}
+  for(i=0;i<arr.length;i++)if(arr[i].id===id){
+    arr[i].done=!arr[i].done;
+    if(state.view==="late")justDone[id]=1;   // 在未完成檢視打勾：先留著，劃掉就好
+    break;
+  }
   touch(monthOf(dk));renderBody();renderHead();
 });
 document.getElementById("edAdd").onclick=addItem;
@@ -828,14 +949,25 @@ scrim.onclick=closeEd;
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&state.open)closeEd();});
 document.getElementById("vlist").onclick=function(){setView("list");};
 document.getElementById("vgrid").onclick=function(){setView("grid");};
+document.getElementById("vlate").onclick=function(){setView("late");window.scrollTo(0,0);};
 function setView(v){
+  if(v!=="list"&&v!=="grid"&&v!=="late")v="list";
+  if(state.view==="late"&&v!=="late")justDone={};   // 離開未完成檢視，剛打勾的收起來
   state.view=v;saveLocal();
   document.getElementById("vlist").setAttribute("aria-pressed",v==="list"?"true":"false");
   document.getElementById("vgrid").setAttribute("aria-pressed",v==="grid"?"true":"false");
+  document.getElementById("vlate").setAttribute("aria-pressed",v==="late"?"true":"false");
   renderBody();
-  centerToday(false);   // 換檢視之後位置會亂掉，重新對準今天
+  if(v!=="late")centerToday(false);   // 換檢視之後位置會亂掉，重新對準今天
 }
-document.getElementById("btnToday").onclick=function(){centerToday(true);};
+document.getElementById("fab").onclick=function(){centerToday(true);};
+document.getElementById("fabDate").textContent=md(todayKey)+"（"+WD[col(D(todayKey))]+"）";
+var fabTick=false;
+window.addEventListener("scroll",function(){
+  if(fabTick)return;fabTick=true;
+  requestAnimationFrame(function(){fabTick=false;updateFab();});
+},{passive:true});
+window.addEventListener("resize",updateFab);
 
 /* ---------- 離線版：內建計畫、版本合併、匯出匯入 ----------
    只有烤了 SEED 的獨立網頁會走這段；artifact 版本沒有 SEED，整段不啟用。 */
